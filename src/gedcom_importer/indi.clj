@@ -28,43 +28,62 @@
   (let [plac (-> record second first :data)]
     {:location {:place plac}}))
 
-(letfn [(clean-date [date]
-          (string/replace
-            date
-            #"b\.?c\.?|a\.?d\.?|c\.?a?\.|circa|unknown|FROM|TO|BET|BTN|AFT|BEF|AND|about|ab|ABT|CAL|EST|INT|\(.*\)"
-            ""))
+(defn clean-date [date]
+  (string/replace
+    date
+    #"b\.?c\.?|a\.?d\.?|c\.?a?\.|circa|unknown|FROM|TO|BET|BTN|AFT|BEF|AND|about|ab|ABT|CAL|EST|INT|\(.*\)"
+    ""))
 
-        (date-to-map [on date & [reverse?]]
-          (zipmap (if reverse?
-                    [:year :month :day]
-                    [:day :month :year])
-                  (string/split date on)))
+(defn ^:private date-to-map [on date & [reverse?]]
+  (zipmap (if reverse?
+            [:year :month :day]
+            [:day :month :year])
+          (string/split date on)))
 
-        (lookup-month [month] month)
+(def ^:private months
+  (map zipmap
+       ;; Short English months.
+       [["JAN" "FEB" "MAR" "APR" "MAY" "JUN" "JUL" "AUG" "SEP" "OCT" "NOV" "DEC"]
+        ;; Long English months.
+        ["JANUARY" "FEBRUARY" "MARCH" "APRIL" "MAY" "JUNE" "JULY" "AUGUST" "SEPTEMBER"
+         "OCTOBER" "NOVEMBER" "DECEMBER"]
+        ;; Short Dutch months.
+        ["JAN" "FEB" "MRT" "APR" "MEI" "JUN" "JUL" "AUG" "SEP" "OCT" "NOV" "DEC"]
+        ;; Short French months.
+        ["VEND" "BRUM" "FRIM" "NIVO" "PLUV" "VENT" "GERM" "FLOR" "PRAI" "MESS" "THER"
+         "FRUC" "COMP"]
+        ;; Short Hebrew months.
+        ["TSH" "CSH" "KSL" "TVT" "SHV" "ADR" "ADS" "NSN" "IYR" "SVN" "TMZ" "AAV" "ELL"]
+        ;; Long French months.
+        ["VENDEMIAIRE" "BRUMAIRE" "FRIMAIRE" "NIVOSE" "FLUVIOSE" "VENTOSE" "GERMINAL"
+         "FLOREAL" "PRAIRIAL" "MESSIDOR" "THERMIDOR" "FRUCTIDOR" "JOUR_COMPLEMENTAIRS"]
+        ;; Long Hebrew months.
+        ["TISHRI" "CHESHVAN" "KISLEV" "TEVET" "SHEVAT" "ADAR" "ADAR_SHENI" "NISAN" "IYAR"
+         "SIVAN" "TAMMUZ" "AV" "ELUL"]]
+       (repeat (range 1 13))))
 
-        (parse-component [acc component]
-          (cond (re-find #"\d+" component)
-                (assoc acc
-                       (if (< 2 (count component)) :year :day)
-                       (Integer. component))
-                (re-find #"\W" component) acc
-                :else
-                (assoc acc :month (lookup-month component))))]
+(defn ^:private lookup-month [month]
+  (some #(% month) months))
 
-  (defmethod to-geni "DATE" [record]
-    (let [plac (-> record second first :data)
-          date (clean-date plac)
-          approximate (re-find #"about|ab|ABT|CAL|EST|INT" plac)]
-      (cond (some #{\/} date)
-            {:date (date-to-map #"/" date)}
-            (re-find #"\d{1,2}-\d{1,2}-\d{4}" date)
-            {:date (date-to-map #"-" date)}
-            (re-find #"\d{4}-\d{1,2}-\d{1,2}" date)
-            {:date (date-to-map #"-" date :reverse)}
-            :else
-            (reduce parse-component
-                    {:circa (boolean approximate)}
-                    (string/split date #"\b"))))))
+(defn ^:private parse-component [acc component]
+  (cond (re-find #"\d+" component)
+        (assoc acc
+               (if (< 2 (count component)) :year :day)
+               (Integer. component))
+        (re-find #"\W" component) acc
+        :else
+        (assoc acc :month (lookup-month component))))
+
+(defmethod to-geni "DATE" [record]
+  (let [plac (-> record second first :data)
+        date (clean-date plac)
+        approximate (re-find #"about|ab|ABT|CAL|EST|INT" plac)]
+    {:date (cond (some #{\/} date) (date-to-map #"/" date)
+                 (re-find #"\d{1,2}-\d{1,2}-\d{4}" date) (date-to-map #"-" date)
+                 (re-find #"\d{4}-\d{1,2}-\d{1,2}" date) (date-to-map #"-" date :reverse)
+                 :else (reduce parse-component
+                               {:circa (boolean approximate)}
+                               (string/split date #"\b")))}))
 
 (defmethod to-geni "BIRTH" [record]
   ())
