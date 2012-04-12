@@ -19,7 +19,7 @@
 
 (defmethod to-geni "ADDR" [record]
   (let [addr (-> record second first)
-        extract (fn [k] (-> k addr first :data))]
+        extract (fn [k] (-> addr (get k) first :data))]
     {:location {:country (extract "CTRY")
                 :state   (extract "STAE")
                 :city    (extract "CITY")}}))
@@ -85,8 +85,12 @@
                                {:circa (boolean approximate)}
                                (string/split date #"\b")))}))
 
-(defmethod to-geni "BIRTH" [record]
-  ())
+(letfn [(event [record k]
+          {k (reduce utils/adjoin (mapcat #(map to-geni %) (second record)))})]
+
+  (defmethod to-geni "BIRT" [record] (event record :birth))
+  (defmethod to-geni "DEAT" [record] (event record :death))
+  (defmethod to-geni "BAPM" [record] (event record :baptism)))
 
 (defmethod to-geni :default [_] nil)
 
