@@ -2,12 +2,19 @@
   (:require [clojure.string :as string]
             [useful.utils :as utils]))
 
-(defmulti to-geni first)
+(defmulti to-geni
+  "Parse pieces of records."
+  first)
 
+;; Parse the name of an individual into first_name, middle_name
+;; last_name, and suffix parts. The first name is always the very
+;; first part of a name. The middle name is everything after the
+;; first name up to the first slash (/) that delimits the last
+;; name. After the next / is the suffix.
 (defmethod to-geni "NAME"
   [record]
   (let [name (-> record second first :data)
-        [[first-name & middles] [last-name suffix] :as all]
+        [[first-name & middles] [last-name suffix]]
         (split-with
           #(not (.startsWith % "/"))
           (map first (re-seq #"(/[^/]*\*?/\*?|[^* ]+\*?)"
@@ -17,6 +24,8 @@
      :last_name (when last-name (last (re-find #"/(.*)/" last-name)))
      :suffix suffix}))
 
+;; Extract the city, state, and country out of an ADDR
+;; structure.
 (defmethod to-geni "ADDR" [record]
   (let [addr (-> record second first)
         extract (fn [k] (-> addr (get k) first :data))]
@@ -28,7 +37,7 @@
   (let [plac (-> record second first :data)]
     {:location {:place plac}}))
 
-(defn clean-date [date]
+(defn ^:private clean-date [date]
   (string/replace
     date
     #"b\.?c\.?|a\.?d\.?|c\.?a?\.|circa|unknown|FROM|TO|BET|BTN|AFT|BEF|AND|about|ab|ABT|CAL|EST|INT|\(.*\)"
