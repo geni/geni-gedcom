@@ -3,7 +3,7 @@
             [useful.utils :as utils]))
 
 (defmulti to-geni
-  "Parse pieces of records."
+  "Parse pieces of GEDCOM records."
   first)
 
 ;; Parse the name of an individual into first_name, middle_name
@@ -33,23 +33,37 @@
                 :state   (extract "STAE")
                 :city    (extract "CITY")}}))
 
+;; Extract the place structure from PLAC tags.
 (defmethod to-geni "PLAC" [record]
   (let [plac (-> record second first :data)]
     {:location {:place plac}}))
 
-(defn ^:private clean-date [date]
+(defn ^:private clean-date
+  "Remove characters we don't care about from a DATE."
+  [date]
   (string/replace
     date
     #"b\.?c\.?|a\.?d\.?|c\.?a?\.|circa|unknown|FROM|TO|BET|BTN|AFT|BEF|AND|about|ab|ABT|CAL|EST|INT|\(.*\)"
     ""))
 
-(defn ^:private date-to-map [on date & [reverse?]]
+(defn ^:private date-to-map
+  "For simple date structures where each segment is simply
+  separated by a single delimiter (like - or /), split on
+  that delimiter and then create a map of :month, :day,
+  and :year. Sometimes these are in reverse. In thos cases,
+  you can pass a third argument (truthy) to reverse the
+  ordering."
+  [on date & [reverse?]]
   (zipmap (if reverse?
             [:year :month :day]
             [:day :month :year])
           (string/split date on)))
 
-(def ^:private months
+(def ^:private
+  "A list of maps of month names in various languages to
+  numbers corresponding with the number of that month in
+  the year."
+  months
   (map zipmap
        ;; Short English months.
        [["JAN" "FEB" "MAR" "APR" "MAY" "JUN" "JUL" "AUG" "SEP" "OCT" "NOV" "DEC"]
@@ -71,10 +85,16 @@
          "SIVAN" "TAMMUZ" "AV" "ELUL"]]
        (repeat (range 1 13))))
 
-(defn ^:private lookup-month [month]
+(defn ^:private lookup-month
+  "Find the number that matches a month string in various
+  languages."
+  [month]
   (some #(% month) months))
 
-(defn ^:private parse-component [acc component]
+(defn ^:private parse-component
+  "Parse the month, year, and day out of a GEDCOM DATE
+  structure."
+  [acc component]
   (cond (re-find #"\d+" component)
         (assoc acc
                (if (< 2 (count component)) :year :day)
@@ -94,6 +114,10 @@
                                {:circa (boolean approximate)}
                                (string/split date #"\b")))}))
 
+;; BIRT, DEAT, and BAPM all have the same general structure.
+;; The difference between them is what key we put the results
+;; under for passing to the API. Therefore, these methods are
+;; very simple.
 (letfn [(event [record k]
           {k (reduce utils/adjoin (mapcat #(map to-geni %) (second record)))})]
 
@@ -101,7 +125,11 @@
   (defmethod to-geni "DEAT" [record] (event record :death))
   (defmethod to-geni "BAPM" [record] (event record :baptism)))
 
+;; Handle nils and tags we don't need to support.
 (defmethod to-geni :default [_] nil)
 
-(defn indi-to-geni [records]
+(defn indi-to-geni
+  "Parse an INDI record and return a map suitable for passing
+  to the Geni API."
+  [records]
   (reduce merge (map to-geni records)))
