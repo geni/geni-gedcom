@@ -59,29 +59,35 @@
             [:day :month :year])
           (string/split date on)))
 
+(defn ^:private also-lower
+  "Produce lowercase versions of each list."
+  [l]
+  (concat l (for [months l] (map #(.toLowerCase %) months))))
+
 (def ^:private months
   "A list of maps of month names in various languages to
   numbers corresponding with the number of that month in
   the year." 
   (map zipmap
-       ;; Short English months.
-       [["JAN" "FEB" "MAR" "APR" "MAY" "JUN" "JUL" "AUG" "SEP" "OCT" "NOV" "DEC"]
-        ;; Long English months.
-        ["JANUARY" "FEBRUARY" "MARCH" "APRIL" "MAY" "JUNE" "JULY" "AUGUST" "SEPTEMBER"
-         "OCTOBER" "NOVEMBER" "DECEMBER"]
-        ;; Short Dutch months.
-        ["JAN" "FEB" "MRT" "APR" "MEI" "JUN" "JUL" "AUG" "SEP" "OCT" "NOV" "DEC"]
-        ;; Short French months.
-        ["VEND" "BRUM" "FRIM" "NIVO" "PLUV" "VENT" "GERM" "FLOR" "PRAI" "MESS" "THER"
-         "FRUC" "COMP"]
-        ;; Short Hebrew months.
-        ["TSH" "CSH" "KSL" "TVT" "SHV" "ADR" "ADS" "NSN" "IYR" "SVN" "TMZ" "AAV" "ELL"]
-        ;; Long French months.
-        ["VENDEMIAIRE" "BRUMAIRE" "FRIMAIRE" "NIVOSE" "FLUVIOSE" "VENTOSE" "GERMINAL"
-         "FLOREAL" "PRAIRIAL" "MESSIDOR" "THERMIDOR" "FRUCTIDOR" "JOUR_COMPLEMENTAIRS"]
-        ;; Long Hebrew months.
-        ["TISHRI" "CHESHVAN" "KISLEV" "TEVET" "SHEVAT" "ADAR" "ADAR_SHENI" "NISAN" "IYAR"
-         "SIVAN" "TAMMUZ" "AV" "ELUL"]]
+       (also-lower
+         ;; Short English months.
+         [["JAN" "FEB" "MAR" "APR" "MAY" "JUN" "JUL" "AUG" "SEP" "OCT" "NOV" "DEC"]
+          ;; Long English months.
+          ["JANUARY" "FEBRUARY" "MARCH" "APRIL" "MAY" "JUNE" "JULY" "AUGUST" "SEPTEMBER"
+           "OCTOBER" "NOVEMBER" "DECEMBER"]
+          ;; Short Dutch months.
+          ["JAN" "FEB" "MRT" "APR" "MEI" "JUN" "JUL" "AUG" "SEP" "OCT" "NOV" "DEC"]
+          ;; Short French months.
+          ["VEND" "BRUM" "FRIM" "NIVO" "PLUV" "VENT" "GERM" "FLOR" "PRAI" "MESS" "THER"
+           "FRUC" "COMP"]
+          ;; Short Hebrew months.
+          ["TSH" "CSH" "KSL" "TVT" "SHV" "ADR" "ADS" "NSN" "IYR" "SVN" "TMZ" "AAV" "ELL"]
+          ;; Long French months.
+          ["VENDEMIAIRE" "BRUMAIRE" "FRIMAIRE" "NIVOSE" "FLUVIOSE" "VENTOSE" "GERMINAL"
+           "FLOREAL" "PRAIRIAL" "MESSIDOR" "THERMIDOR" "FRUCTIDOR" "JOUR_COMPLEMENTAIRS"]
+          ;; Long Hebrew months.
+          ["TISHRI" "CHESHVAN" "KISLEV" "TEVET" "SHEVAT" "ADAR" "ADAR_SHENI" "NISAN" "IYAR"
+           "SIVAN" "TAMMUZ" "AV" "ELUL"]]) 
        (repeat (range 1 13))))
 
 (defn ^:private lookup-month
