@@ -59,11 +59,10 @@
             [:day :month :year])
           (string/split date on)))
 
-(def ^:private
+(def ^:private months
   "A list of maps of month names in various languages to
   numbers corresponding with the number of that month in
-  the year."
-  months
+  the year." 
   (map zipmap
        ;; Short English months.
        [["JAN" "FEB" "MAR" "APR" "MAY" "JUN" "JUL" "AUG" "SEP" "OCT" "NOV" "DEC"]
