@@ -1,15 +1,10 @@
 # gedcom-importer
 
-I'm an app. Or maybe I'm a library? I haven't decided yet. 
+A GEDCOM to Geni API importer tool.
 
-The choice is up to you!
-
-## Usage
-
-FIXME
+The idea is to take a GEDCOM file and import the family records into
+Geni via its API.
 
 ## License
-
-Copyright © 2012 FIXME
 
 Distributed under the Eclipse Public License, the same as Clojure.
