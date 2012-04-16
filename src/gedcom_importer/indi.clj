@@ -2,6 +2,11 @@
   (:require [clojure.string :as string]
             [useful.utils :as utils]))
 
+(def ^:private get-data
+  "Convenience function that gets the data from
+  a record."
+  (comp :data first second))
+
 (defmulti to-geni
   "Parse pieces of GEDCOM records."
   first)
@@ -13,7 +18,7 @@
 ;; name. After the next / is the suffix.
 (defmethod to-geni "NAME"
   [record]
-  (let [name (-> record second first :data)
+  (let [name (get-data record)
         [[first-name & middles] [last-name suffix]]
         (split-with
           #(not (.startsWith % "/"))
@@ -35,7 +40,7 @@
 
 ;; Extract the place structure from PLAC tags.
 (defmethod to-geni "PLAC" [record]
-  (let [plac (-> record second first :data)]
+  (let [plac (get-data record)]
     {:location {:place plac}}))
 
 (defn ^:private clean-date
@@ -67,7 +72,7 @@
 (def ^:private months
   "A list of maps of month names in various languages to
   numbers corresponding with the number of that month in
-  the year." 
+  the year."
   (map zipmap
        (also-lower
          ;; Short English months.
@@ -87,7 +92,7 @@
            "FLOREAL" "PRAIRIAL" "MESSIDOR" "THERMIDOR" "FRUCTIDOR" "JOUR_COMPLEMENTAIRS"]
           ;; Long Hebrew months.
           ["TISHRI" "CHESHVAN" "KISLEV" "TEVET" "SHEVAT" "ADAR" "ADAR_SHENI" "NISAN" "IYAR"
-           "SIVAN" "TAMMUZ" "AV" "ELUL"]]) 
+           "SIVAN" "TAMMUZ" "AV" "ELUL"]])
        (repeat (range 1 13))))
 
 (defn ^:private lookup-month
@@ -109,7 +114,7 @@
         (assoc acc :month (lookup-month component))))
 
 (defmethod to-geni "DATE" [record]
-  (let [plac (-> record second first :data)
+  (let [plac (get-data record)
         date (clean-date plac)
         approximate (re-find #"about|ab|ABT|CAL|EST|INT" plac)]
     {:date (cond (some #{\/} date) (date-to-map #"/" date)
@@ -130,6 +135,12 @@
   (defmethod to-geni "DEAT" [record] (event record :death))
   (defmethod to-geni "BAPM" [record] (event record :baptism)))
 
+(defmethod to-geni "FAMS" [record]
+  {:spouse (map :data (second record))})
+
+(defmethod to-geni "FAMC" [record]
+  {:child (map :data (second record))})
+
 ;; Handle nils and tags we don't need to support.
 (defmethod to-geni :default [_] nil)
 
@@ -137,4 +148,6 @@
   "Parse an INDI record and return a map suitable for passing
   to the Geni API."
   [records]
-  (reduce merge (map to-geni records)))
+  (let [parsed (reduce merge (map to-geni records))]
+    [(select-keys parsed [:child :spouse])
+     (dissoc parsed :child :spouse)]))
