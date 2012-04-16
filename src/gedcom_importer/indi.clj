@@ -1,15 +1,7 @@
 (ns gedcom-importer.indi
   (:require [clojure.string :as string]
+            [gedcom-importer.to-geni :refer [to-geni]]
             [useful.utils :as utils]))
-
-(def ^:private get-data
-  "Convenience function that gets the data from
-  a record."
-  (comp :data first second))
-
-(defmulti to-geni
-  "Parse pieces of GEDCOM records."
-  first)
 
 ;; Parse the name of an individual into first_name, middle_name
 ;; last_name, and suffix parts. The first name is always the very
@@ -141,10 +133,7 @@
 (defmethod to-geni "FAMC" [record]
   {:child (map :data (second record))})
 
-;; Handle nils and tags we don't need to support.
-(defmethod to-geni :default [_] nil)
-
-(defn indi-to-geni
+(defn indi
   "Parse an INDI record and return a map suitable for passing
   to the Geni API."
   [records]
