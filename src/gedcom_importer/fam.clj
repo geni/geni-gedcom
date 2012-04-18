@@ -2,7 +2,7 @@
   (:require [gedcom-importer.to-geni :refer [to-geni get-data]]))
 
 ;; The CHIL tag is the only one that there should ever be
-;; more than one of.
+;; more than one of inside of a FAM record.
 (defmethod to-geni "CHIL" [record]
   {:children (map :data (second record))})
 

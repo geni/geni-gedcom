@@ -1,6 +1,6 @@
 (ns gedcom-importer.indi
   (:require [clojure.string :as string]
-            [gedcom-importer.to-geni :refer [to-geni]]
+            [gedcom-importer.to-geni :refer [to-geni get-data]]
             [useful.utils :as utils]))
 
 ;; Parse the name of an individual into first_name, middle_name
@@ -128,10 +128,12 @@
   (defmethod to-geni "BAPM" [record] (event record :baptism)))
 
 (defmethod to-geni "FAMS" [record]
-  {:spouse (map :data (second record))})
+  (when-let [data (seq (map :data (second record)))]
+    {:spouse data}))
 
 (defmethod to-geni "FAMC" [record]
-  {:child (map :data (second record))})
+  (when-let [data (seq (map :data (second record)))]
+    {:child data}))
 
 (defn indi
   "Parse an INDI record and return a map suitable for passing
