@@ -127,6 +127,7 @@
   (defmethod to-geni "DEAT" [record] (event record :death))
   (defmethod to-geni "BAPM" [record] (event record :baptism)))
 
+;; TODO: These next two things are almost certainly unnecessary.
 (defmethod to-geni "FAMS" [record]
   (when-let [data (seq (map :data (second record)))]
     {:spouse data}))
