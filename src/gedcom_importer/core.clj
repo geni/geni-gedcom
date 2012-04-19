@@ -23,6 +23,7 @@
 ;; references to that FAM from the to-be-processed fams.
 ;; If we don't do this, we will end up in an infinite loop
 ;; importing the same FAM over and over again.
+;; TODO: Get rid of this because it is probably stupid and slow.
 (defn remove-old [results current]
   (for [[id label {:keys [spouse child]} :as all] results
         :let [spouse (remove #{current} spouse)
