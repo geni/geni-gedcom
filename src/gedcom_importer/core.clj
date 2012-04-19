@@ -1,5 +1,6 @@
 (ns gedcom-importer.core
   (:require [clj-gedcom.core :as ged]
+            [useful.utils :as utils]
             [geni.core :as geni]
             [gedcom-importer.fam :as fam]
             [gedcom-importer.indi :as indi]))
@@ -7,12 +8,14 @@
 (defn lookup-label [records id]
   (first (filter #(= id (:label %)) records)))
 
-(defn import-record [records to to-label record type token]
-  (when-not (= to-label record)
+(defn import-record [records to to-label record type gender token]
+  (when-not (or (nil? record) (= to-label record))
     (let [[fams params] (indi/indi (lookup-label records record))]
       (when (seq fams)
         [(:id (geni/write (str "/" to "/add-" (name type))
-                          (assoc params :token token)))
+                          (merge-with merge
+                                      (assoc params :token token)
+                                      {:profile {:gender gender}})))
          record
          fams]))))
 
@@ -22,30 +25,31 @@
 ;; importing the same FAM over and over again.
 (defn remove-old [results current]
   (for [[id label {:keys [spouse child]} :as all] results
+        :let [spouse (remove #{current} spouse)
+              child (remove #{current} child)]
         :when (or (seq spouse) (seq child))]
-    [id label {:spouse (remove #{current} spouse)
-               :child (remove #{current} child)}]))
+    [id label {:spouse spouse, :child child}]))
 
 (defn import-fam [records to to-label fam type token]
-  (let [{:keys [children husband wife]} (fam/fam (lookup-label records fam))]
+  (let [{:keys [children husband wife]} (fam/fam (lookup-label records fam))
+        spouse? (= type :spouse)]
     (remove-old
       (concat
-        ;; TODO: Gender.
         [(import-record records to to-label husband
-                        (if (= :type :spouse)
+                        (if spouse?
                           :partner
                           :parent)
-                        token)
+                        "male" token)
          (import-record records to to-label wife
-                        (if (= :type :spouse)
+                        (if spouse?
                           :partner
                           :parent)
-                        token)]
+                        "female" token)]
         (map #(import-record records to to-label %
-                             (if (= :type :spouse)
+                             (if spouse?
                                :child
                                :sibling)
-                             token)
+                             nil token)
              children))
       fam)))
 
@@ -72,7 +76,5 @@
                  label
                  (->> label (lookup-label records) indi/indi first)]]]
       (when (seq (doall fam))
-        (println "-------")
         (prn fam)
-        (println "-------")
         (recur (mapcat (import-for records token) (filter identity fam)))))))

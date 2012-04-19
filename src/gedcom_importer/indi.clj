@@ -3,6 +3,8 @@
             [gedcom-importer.to-geni :refer [to-geni get-data]]
             [useful.utils :as utils]))
 
+;; TODO: Case insensitivity in dates.
+
 ;; Parse the name of an individual into first_name, middle_name
 ;; last_name, and suffix parts. The first name is always the very
 ;; first part of a name. The middle name is everything after the
@@ -127,14 +129,11 @@
   (defmethod to-geni "DEAT" [record] (event record :death))
   (defmethod to-geni "BAPM" [record] (event record :baptism)))
 
-;; TODO: These next two things are almost certainly unnecessary.
 (defmethod to-geni "FAMS" [record]
-  (when-let [data (seq (map :data (second record)))]
-    {:spouse data}))
+  {:spouse (map :data (second record))})
 
 (defmethod to-geni "FAMC" [record]
-  (when-let [data (seq (map :data (second record)))]
-    {:child data}))
+  {:child (map :data (second record))})
 
 (defn indi
   "Parse an INDI record and return a map suitable for passing
