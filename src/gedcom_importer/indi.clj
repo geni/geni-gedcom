@@ -35,7 +35,7 @@
 ;; Extract the place structure from PLAC tags.
 (defmethod to-geni "PLAC" [record]
   (let [plac (get-data record)]
-    {:location {:place plac}}))
+    {:location {:place_name plac}}))
 
 (defn ^:private clean-date
   "Remove characters we don't care about from a DATE."
