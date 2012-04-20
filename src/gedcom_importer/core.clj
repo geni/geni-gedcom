@@ -53,29 +53,6 @@
                children)))
       fam)))
 
-#_(defn import-fam [records to to-label fam type token]
-  (let [{:keys [children husband wife]} (fam/fam (lookup-label records fam))
-        spouse? (= type :spouse)]
-    (remove-old
-      (concat
-        [(import-record records to to-label husband
-                        (if spouse?
-                          :partner
-                          :parent)
-                        "male" token)
-         (import-record records to to-label wife
-                        (if spouse?
-                          :partner
-                          :parent)
-                        "female" token)]
-        (map #(import-record records to to-label %
-                             (if spouse?
-                               :child
-                               :sibling)
-                             nil token)
-             children))
-      fam)))
-
 (defn import-type [records id label type token]
   (fn [fam]
     (import-fam records id label fam type token)))
