@@ -1,5 +1,6 @@
 (ns gedcom-importer.core
   (:require [clj-gedcom.core :as ged]
+            [clojure.string :as string]
             [useful.utils :as utils]
             [geni.core :as geni]
             [gedcom-importer.fam :as fam]
@@ -8,16 +9,18 @@
 (defn lookup-label [records id]
   (first (filter #(= id (:label %)) records)))
 
-(defn import-record [records to to-label record type gender token]
+(def split (fnil string/split ""))
+
+(defn get-union [data]
+  (-> data :unions first (split #"/") last))
+
+(defn import-record [records to to-label record type token]
   (when-not (or (nil? record) (= to-label record))
     (let [[fams params] (indi/indi (lookup-label records record))]
       (when (seq fams)
-        [(:id (geni/write (str "/" to "/add-" (name type))
-                          (merge-with merge
-                                      (assoc params :token token)
-                                      {:profile {:gender gender}})))
-         record
-         fams]))))
+        (let [written (geni/write (str "/" to "/add-" (name type))
+                                  (assoc params :token token))]
+         [[(:id written) record fams] (get-union written)])))))
 
 ;; After we've added a FAM, we need to remove any cross
 ;; references to that FAM from the to-be-processed fams.
@@ -32,6 +35,25 @@
     [id label {:spouse spouse, :child child}]))
 
 (defn import-fam [records to to-label fam type token]
+  (let [{:keys [children husband wife]} (fam/fam (lookup-label records fam))
+        spouse? (= type :spouse)]
+    (remove-old
+      (if spouse?
+        (let [[husband-result h-union] (import-record records to to-label husband :partner token)
+              [wife-result w-union]    (import-record records to to-label wife :partner token)
+              to                       (or w-union h-union (first husband-result) (first wife-result) to)]
+          (concat
+            [husband-result wife-result
+             (map #(first (import-record records to to-label % :child token))
+                  children)]))
+        (concat
+          (map first [(import-record records to to-label husband :parent token)
+                      (import-record records to to-label wife :parent token)])
+          (map #(first (import-record records to to-label % :sibling token))
+               children)))
+      fam)))
+
+#_(defn import-fam [records to to-label fam type token]
   (let [{:keys [children husband wife]} (fam/fam (lookup-label records fam))
         spouse? (= type :spouse)]
     (remove-old
@@ -77,5 +99,4 @@
                  label
                  (->> label (lookup-label records) indi/indi first)]]]
       (when (seq (doall fam))
-        (prn fam)
         (recur (mapcat (import-for records token) (filter identity fam)))))))
