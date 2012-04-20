@@ -126,7 +126,7 @@
           {k (reduce utils/adjoin (mapcat #(map to-geni %) (second record)))})]
 
   (defmethod to-geni "BIRT" [record] (event record :birth))
-  (defmethod to-geni "DEAT" [record] (event record :death))
+  (defmethod to-geni "DEAT" [record] (assoc (event record :death) :is_alive false))
   (defmethod to-geni "BAPM" [record] (event record :baptism)))
 
 (defmethod to-geni "FAMS" [record]
@@ -135,10 +135,19 @@
 (defmethod to-geni "FAMC" [record]
   {:child (map :data (second record))})
 
+(defmethod to-geni "SEX" [record]
+  {:gender (case (get-data record)
+             "M" "male"
+             "F" "female"
+             nil)})
+
 (defn indi
   "Parse an INDI record and return a map suitable for passing
   to the Geni API."
   [records]
-  (let [parsed (reduce merge (map to-geni records))]
-    [(select-keys parsed [:child :spouse])
-     (dissoc parsed :child :spouse)]))
+  (let [parsed (reduce merge (map to-geni records))
+        final (if (contains? parsed :is_alive)
+                parsed
+                (assoc parsed :is_alive true))]
+    [(select-keys final [:child :spouse])
+     (dissoc final :child :spouse)]))
