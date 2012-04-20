@@ -93,7 +93,8 @@
   "Find the number that matches a month string in various
   languages."
   [month]
-  (some #(% month) months))
+  (let [month (and month (.toUpperCase month))]
+    (some #(% month) months)))
 
 (defn ^:private parse-component
   "Parse the month, year, and day out of a GEDCOM DATE
