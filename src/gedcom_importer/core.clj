@@ -47,9 +47,9 @@
              (map #(first (import-record records to to-label % :child token))
                   children)]))
         (concat
-          (pmap first [(import-record records to to-label husband :parent token)
+          (map first [(import-record records to to-label husband :parent token)
                       (import-record records to to-label wife :parent token)])
-          (pmap #(first (import-record records to to-label % :sibling token))
+          (map #(first (import-record records to to-label % :sibling token))
                children)))
       fam)))
 
