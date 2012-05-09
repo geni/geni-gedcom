@@ -150,5 +150,5 @@
         final (if (contains? parsed :is_alive)
                 parsed
                 (assoc parsed :is_alive true))]
-    [(select-keys final [:child :spouse])
+    [((juxt :child :spouse) final)
      (dissoc final :child :spouse)]))
