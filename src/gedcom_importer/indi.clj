@@ -3,8 +3,6 @@
             [gedcom-importer.to-geni :refer [to-geni get-data]]
             [useful.utils :as utils]))
 
-;; TODO: Case insensitivity in dates.
-
 ;; Parse the name of an individual into first_name, middle_name
 ;; last_name, and suffix parts. The first name is always the very
 ;; first part of a name. The middle name is everything after the
