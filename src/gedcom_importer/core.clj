@@ -1,7 +1,6 @@
 (ns gedcom-importer.core
   (:require [clj-gedcom.core :as ged]
-            [clojure.string :as string]
-            [useful.utils :as utils]
+            [useful.utils :refer [adjoin]]
             [geni.core :as geni]
             [gedcom-importer.fam :as fam]
             [gedcom-importer.indi :as indi]))
@@ -9,71 +8,53 @@
 (defn lookup-label [records id]
   (first (filter #(= id (:label %)) records)))
 
-(def split (fnil string/split ""))
+(defn import-group
+  "Import a map of profiles and unions."
+  [tree token]
+  (geni/write "/profiles/import-tree" (assoc tree :token token)))
 
-(defn get-union [data]
-  (-> data :unions first (split #"/") last))
+(defn lookup-existing [processed id]
+  (get-in processed [:profiles id]))
 
-(defn import-record [records to to-label record type token]
-  (when-not (or (nil? record) (= to-label record))
-    (let [[fams params] (indi/indi (lookup-label records record))]
-      (when (seq fams)
-        (let [written (geni/write (str "/" to "/add-" (name type))
-                                  (assoc params :token token))]
-         [[(:id written) record fams] (get-union written)])))))
+(defn process-profiles [records processed fam-id fam]
+  (let [results (for [profile-id (mapcat val fam)
+                      :when (not (lookup-existing processed profile-id))
+                      :let [[fams record] (indi/indi (lookup-label records profile-id))]]
+                  [[profile-id record] (remove #{fam-id} fams)])]
+    [(into {} (map first results))
+     (mapcat second results)]))
 
-;; After we've added a FAM, we need to remove any cross
-;; references to that FAM from the to-be-processed fams.
-;; If we don't do this, we will end up in an infinite loop
-;; importing the same FAM over and over again.
-;; TODO: Get rid of this because it is probably stupid and slow.
-(defn remove-old [results current]
-  (for [[id label {:keys [spouse child]} :as all] results
-        :let [spouse (remove #{current} spouse)
-              child (remove #{current} child)]
-        :when (or (seq spouse) (seq child))]
-    [id label {:spouse spouse, :child child}]))
+(defn replace-existing [processed fam]
+  (into {}
+        (for [[k v] fam
+              :let [v (map #(or (lookup-existing processed %) %) v)]]
+          [k v])))
 
-(defn import-fam [records to to-label fam type token]
-  (let [{:keys [children husband wife]} (fam/fam (lookup-label records fam))
-        spouse? (= type :spouse)]
-    (remove-old
-      (if spouse?
-        (let [[husband-result h-union] (import-record records to to-label husband :partner token)
-              [wife-result w-union]    (import-record records to to-label wife :partner token)
-              to                       (or w-union h-union (first husband-result) (first wife-result) to)]
-          (concat
-            [husband-result wife-result
-             (map #(first (import-record records to to-label % :child token))
-                  children)]))
-        (concat
-          (map first [(import-record records to to-label husband :parent token)
-                      (import-record records to to-label wife :parent token)])
-          (map #(first (import-record records to to-label % :sibling token))
-               children)))
-      fam)))
+(defn unions [records processed fams]
+  (for [fam fams]
+    [fam (replace-existing processed (fam/fam (lookup-label records fam)))]))
 
-(defn import-type [records id label type token]
-  (fn [fam]
-    (import-fam records id label fam type token)))
-
-(defn import-for [records token]
-  (fn [[id label fam]]
-    (seq
-      (concat (mapcat (import-type records id label :spouse token)
-                      (:spouse fam))
-              (mapcat (import-type records id label :child token)
-                      (:child fam))))))
+(defn ready? [processed tree]
+  (let [{processed-unions :unions, processed-profiles :profiles} processed
+        {:keys [profiles unions]} tree]
+    (or (<= 100 (+ (count processed-unions) (count unions)))
+        (<= 100 (+ (count processed-profiles) (count profiles))))))
 
 (defn import-gedcom
-  "Import a GEDCOM file. ged is the GEDCOM file
-  itself. label is the label of the INDI record
-  corresponding with the Geni account being used
-  to add family."
   [file label token]
   (let [records (ged/parse-gedcom-records file)]
-    (loop [fam [[(:id (geni/read "/profile" {:token token}))
-                 label
-                 (->> label (lookup-label records) indi/indi first)]]]
-      (when (seq (doall fam))
-        (recur (mapcat (import-for records token) (filter identity fam)))))))
+    (loop [processed {:profiles {label (:id (geni/read "/profile" {:token token}))}}
+           processing {}
+           fams-to-process (->> label (lookup-label records) indi/indi first)]
+      (let [fams (unions records processed fams-to-process)
+            results (map #(apply process-profiles records processed %) fams)
+            unprocessed (mapcat second results)
+            tree {:unions (into {} fams)
+                  :profiles (map first results)}]
+        (when (seq fams-to-process)
+          (if (or (ready? processing tree) (not (seq unprocessed)))
+            (do
+              (println "importing")
+              (prn processing)
+              (recur (import-group processing token) tree unprocessed))
+            (recur processed (merge-with merge processing tree) unprocessed)))))))
