@@ -17,4 +17,4 @@
   "Parse a FAM record into a map of :children
    and :partners."
   [record]
-  (reduce adjoin (map to-geni record)))
+  (reduce adjoin {} (map to-geni record)))
