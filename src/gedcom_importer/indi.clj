@@ -148,5 +148,5 @@
         final (if (contains? parsed :is_alive)
                 parsed
                 (assoc parsed :is_alive true))]
-    [((juxt :child :spouse) final)
+    [(apply concat ((juxt :child :spouse) final))
      (dissoc final :child :spouse)]))
