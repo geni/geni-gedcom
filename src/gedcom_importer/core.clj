@@ -3,7 +3,8 @@
             [useful.utils :refer [adjoin]]
             [geni.core :as geni]
             [gedcom-importer.fam :as fam]
-            [gedcom-importer.indi :as indi]))
+            [gedcom-importer.indi :as indi]
+            [clojure.pprint :refer [pprint]]))
 
 (defn lookup-label [records id]
   (first (filter #(= id (:label %)) records)))
@@ -16,10 +17,11 @@
 (defn lookup-existing [processed id]
   (get-in processed [:profiles id]))
 
-(defn process-profiles [records processed fam-id fam]
+(defn process-profiles [records processed processing fam-id fam]
   (let [results (for [profile-id (mapcat val fam)
-                      :when (not (lookup-existing processed profile-id))
-                      :let [[fams record] (indi/indi (lookup-label records profile-id))]]
+                      :when (and (not (contains? (:profiles processing) profile-id))
+                                 (not (.startsWith profile-id "profile-")))
+                      :let [[fams record] (indi/indi (lookup-label records profile-id))]]                  
                   [[profile-id record] (remove #{fam-id} fams)])]
     [(into {} (map first results))
      (mapcat second results)]))
@@ -46,15 +48,12 @@
     (loop [processed {:profiles {label (:id (geni/read "/profile" {:token token}))}}
            processing {}
            fams-to-process (->> label (lookup-label records) indi/indi first)]
-      (let [fams (unions records processed fams-to-process)
-            results (map #(apply process-profiles records processed %) fams)
-            unprocessed (mapcat second results)
-            tree {:unions (into {} fams)
-                  :profiles (map first results)}]
-        (when (seq fams-to-process)
+      (when (seq fams-to-process)
+        (let [fams (unions records processed fams-to-process)
+              results (map #(apply process-profiles records processed processing %) fams)
+              unprocessed (mapcat second results)
+              tree {:unions (into {} fams)
+                    :profiles (apply merge (map first results))}]
           (if (or (ready? processing tree) (not (seq unprocessed)))
-            (do
-              (println "importing")
-              (prn processing)
-              (recur (import-group processing token) tree unprocessed))
+            (recur (merge-with merge (import-group processing token) processed) tree unprocessed)
             (recur processed (merge-with merge processing tree) unprocessed)))))))
