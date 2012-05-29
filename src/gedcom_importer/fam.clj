@@ -14,7 +14,16 @@
   {:partners [(get-data record)]})
 
 (defn fam
-  "Parse a FAM record into a map of :children
-   and :partners."
+  "Parse a FAM record into a map of :children and :partners."
   [record]
   (reduce adjoin {} (map to-geni record)))
+
+(defn indis
+  "Return the INDI links for an already parsed FAM record."
+  [fam]
+  (mapcat fam [:children :partners]))
+
+(defn without-indis
+  "Return the FAM record with INDI links removed."
+  [fam]
+  (dissoc fam :children :partners))

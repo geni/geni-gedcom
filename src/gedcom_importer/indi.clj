@@ -129,7 +129,7 @@
   (defmethod to-geni "BAPM" [record] (event record :baptism)))
 
 (defmethod to-geni "FAMS" [record]
-  {:spouse (map :data (second record))})
+  {:partner (map :data (second record))})
 
 (defmethod to-geni "FAMC" [record]
   {:child (map :data (second record))})
@@ -152,9 +152,9 @@
 (defn fams
   "Return the FAM links for an already parsed INDI record."
   [indi]
-  (mapcat indi [:child :spouse]))
+  (mapcat indi [:child :partner]))
 
 (defn without-fams
-  "Return the INDI record with fam links removed."
+  "Return the INDI record with FAM links removed."
   [indi]
-  (dissoc indi :child :spouse))
+  (dissoc indi :child :partner))
