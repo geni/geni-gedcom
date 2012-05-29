@@ -52,7 +52,7 @@
          [[fam-id record] & rest] group]
     (if fam-id
       (let [[tree links] (process-profiles records processed processing fam-id record)]
-        (recur (adjoin processing tree) (concat unprocessed links) rest))
+        (recur (merge-with merge processing tree) (concat unprocessed links) rest))
       [processing unprocessed])))
 
 (defn debug [message item]
@@ -66,7 +66,7 @@
     (if group
       (let [[tree links] (prepare-group records processed group)]
         (debug "\n\nprepared\n\n" tree)
-        (recur (adjoin processed (debug "\n\nimporting\n\n" (import-group tree token)))
+        (recur (merge-with merge processed (debug "\n\nimporting\n\n" (import-group tree token)))
                (concat unprocessed links)
                rest))
       [processed unprocessed])))
@@ -79,4 +79,4 @@
       (when (seq fams-to-process)
         (let [fam-groups (unions records fams-to-process)
               [done unprocessed] (import-groups records token processed fam-groups)]
-          (recur (adjoin done processed) unprocessed))))))
+          (recur (merge-with merge done processed) unprocessed))))))
