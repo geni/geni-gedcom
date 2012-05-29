@@ -31,11 +31,12 @@
   [records fams]
   (loop [num-profiles 0, groups [], group [], fams fams]
     (if (seq fams)
-      (let [union (fam/fam (get records (first fams)))
+      (let [fam-id (first fams)
+            union (fam/fam (get records fam-id))
             num-profiles (+ num-profiles (count (fam/indis union)))]
         (if (>= num-profiles 100)
-          (recur 0 (conj groups group) [[fam union]] (rest fams))
-          (recur num-profiles groups (conj group [fam union]) (rest fams))))
+          (recur 0 (conj groups group) [[fam-id union]] (rest fams))
+          (recur num-profiles groups (conj group [fam-id union]) (rest fams))))
       (conj groups group))))
 
 (defn prepare-group [records processed group]
@@ -57,9 +58,9 @@
 (defn import-groups [records token processed fams]
   (loop [processed processed
          unprocessed []
-         groups (partition-fams records fams-to-process)]
+         groups (partition-fams records fams)]
     (if (seq groups)
-      (let [[tree links] (prepare-group records processed (first group))]
+      (let [[tree links] (prepare-group records processed (first groups))]
         (debug "\n\nprepared\n\n" tree)
         (recur (merge-with merge processed (debug "\n\nimporting\n\n" (import-group tree token)))
                (concat unprocessed links)
