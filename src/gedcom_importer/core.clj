@@ -14,59 +14,69 @@
   [tree token]
   (geni/write "/profiles/import_tree" (assoc tree :token token)))
 
+(defn geni-id [s]
+  (when s (last (.split s "/"))))
+
 (defn process-profiles [records processed processing fam-id fam]
-  (let [results (for [profile-id (mapcat val fam)]
-                  (if (or (contains? (:profiles processed) (keyword profile-id))
-                          (contains? (:profiles processing) profile-id))
-                    [[profile-id nil]]
+  (let [results (for [profile-id (mapcat val fam)
+                      :when (not (contains? (:profiles processing) profile-id))]
+                  (if-let [processed-id (geni-id (get-in processed [:profiles (keyword profile-id)]))]  
+                    [[profile-id processed-id]]
                     (let [[fams record] (indi/indi (lookup-label records profile-id))]
                       [[profile-id record] (remove #{fam-id} fams)])))]
-    [(into {} (map first results))
+    [{:profiles (into {} (map first results))
+      :unions {fam-id fam}}
      (mapcat second results)]))
-
-(defn update-existing [processed tree]
-  (assoc-in tree [:profiles]
-            (into
-             {}
-             (for [[id record] (:profiles tree)]
-               (if (nil? record)
-                 (if-let [profile (get-in processed [:profiles (keyword id)])]
-                   [id profile]
-                   nil)
-                 [id record])))))
 
 (defn workaround [fam]
   (if (:partners fam)
     fam
     (assoc fam :partners [])))
 
-(defn unions [records fams]
-  (for [fam fams]
-    [fam (workaround (fam/fam (lookup-label records fam)))]))
+(defn partition-fams [unions]
+  (loop [max 0 groups [] acc [] [group & rest] unions]
+    (let [max (+ max (count (mapcat val (second group))))]
+      (cond
+       (nil? group) (conj groups acc)
+       (>= max 100) (recur 0 (conj groups acc) [group] rest)
+       :else (recur max groups (conj acc group) rest)))))
 
-(defn ready? [processed tree]
-  (let [{processed-unions :unions, processed-profiles :profiles} processed
-        {:keys [profiles unions]} tree]
-    (or (<= 100 (+ (count processed-unions) (count unions)))
-        (<= 100 (+ (count processed-profiles) (count profiles))))))
+(defn unions [records fams]
+  (partition-fams
+   (for [fam fams]
+     [fam (workaround (fam/fam (lookup-label records fam)))])))
+
+(defn prepare-group [records processed group]
+  (loop [processing {}
+         unprocessed []
+         [[fam-id record] & rest] group]
+    (if fam-id
+      (let [[tree links] (process-profiles records processed processing fam-id record)]
+        (recur (adjoin processing tree) (concat unprocessed links) rest))
+      [processing unprocessed])))
+
+(defn debug [message item]
+  (spit "ftest" (str message (with-out-str (pprint item))) :append true)
+  item)
+
+(defn import-groups [records token processed groups]
+  (loop [processed processed
+         unprocessed []
+         [group & rest] groups]
+    (if group
+      (let [[tree links] (prepare-group records processed group)]
+        (debug "\n\nprepared\n\n" tree)
+        (recur (adjoin processed (debug "\n\nimporting\n\n" (import-group tree token)))
+               (concat unprocessed links)
+               rest))
+      [processed unprocessed])))
 
 (defn import-gedcom
   [file label token]
   (let [records (ged/parse-gedcom-records file)]
     (loop [processed {:profiles {(keyword label) (:id (geni/read "/profile" {:token token}))}}
-           processing {}
            fams-to-process (->> label (lookup-label records) indi/indi first)]
       (when (seq fams-to-process)
-        (let [fams (unions records fams-to-process)
-              results (map #(apply process-profiles records processed processing %) fams)
-              unprocessed (mapcat second results)
-              tree {:unions (into {} fams)
-                    :profiles (apply merge (map first results))}]
-          (if (or (ready? processing tree) (not (seq unprocessed)))
-            (do (spit "ftest" (str "importing\n\n" (with-out-str (pprint processing))) :append true)
-                (spit "ftest" (str "\n\ntree\n\n" (with-out-str (pprint tree))) :append true)
-                (spit "ftest" (str "\n\nunprocessed\n\n" (pr-str unprocessed)) :append true)
-                (let [g (import-group (update-existing processed processing) token)]
-                  (spit "ftest" (str "\n\nunprocessed\n\n" (with-out-str (pprint g))) :append true)
-                  (recur (adjoin g processed) tree unprocessed)))
-            (recur processed (adjoin processing tree) unprocessed)))))))
+        (let [fam-groups (unions records fams-to-process)
+              [done unprocessed] (import-groups records token processed fam-groups)]
+          (recur (adjoin done processed) unprocessed))))))
