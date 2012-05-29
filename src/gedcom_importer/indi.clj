@@ -125,7 +125,7 @@
           {k (reduce utils/adjoin (mapcat #(map to-geni %) (second record)))})]
 
   (defmethod to-geni "BIRT" [record] (event record :birth))
-  (defmethod to-geni "DEAT" [record] (assoc (event record :death) :is_alive false))
+  (defmethod to-geni "DEAT" [record] (assoc (event record :death) :living false))
   (defmethod to-geni "BAPM" [record] (event record :baptism)))
 
 (defmethod to-geni "FAMS" [record]
@@ -145,9 +145,9 @@
   to the Geni API."
   [records]
   (let [parsed (reduce merge (map to-geni records))]
-    (if (contains? parsed :is_alive)
+    (if (contains? parsed :living)
       parsed
-      (assoc parsed :is_alive true))))
+      (assoc parsed :living true))))
 
 (defn fams
   "Return the FAM links for an already parsed INDI record."
