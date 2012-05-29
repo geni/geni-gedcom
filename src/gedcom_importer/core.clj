@@ -33,10 +33,12 @@
     (if (seq fams)
       (let [fam-id (first fams)
             union (fam/fam (get records fam-id))
-            num-profiles (+ num-profiles (count (fam/indis union)))]
-        (if (>= num-profiles 100)
-          (recur 0 (conj groups group) [[fam-id union]] (rest fams))
-          (recur num-profiles groups (conj group [fam-id union]) (rest fams))))
+            profile-count (count (fam/indis union))
+            new-num-profiles (+ num-profiles profile-count)]
+        (cond
+         (<= profile-count 1) (recur num-profiles groups group (rest fams))
+         (>= new-num-profiles 100) (recur 0 (conj groups group) [] fams)
+         :else (recur new-num-profiles groups (conj group [fam-id union]) (rest fams))))
       (conj groups group))))
 
 (defn prepare-group [records processed group]
@@ -75,3 +77,4 @@
       (when (seq fams-to-process)
         (let [[done unprocessed] (import-groups records token processed fams-to-process)]
           (recur (merge-with merge done processed) unprocessed))))))
+
