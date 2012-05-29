@@ -33,7 +33,9 @@
     fam
     (assoc fam :partners [])))
 
-(defn partition-fams [unions]
+(defn partition-fams
+  "Returns a seq of groups of unions whose cumulative number of profiles is less than 100."
+  [unions]
   (loop [max 0 groups [] acc [] [group & rest] unions]
     (let [max (+ max (count (mapcat val (second group))))]
       (cond
