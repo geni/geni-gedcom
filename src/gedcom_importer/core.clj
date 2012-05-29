@@ -6,9 +6,6 @@
             [gedcom-importer.indi :as indi]
             [clojure.pprint :refer [pprint]]))
 
-(defn lookup-label [records id]
-  (first (filter #(= id (:label %)) records)))
-
 (defn import-group
   "Import a map of profiles and unions."
   [tree token]
@@ -22,7 +19,7 @@
                       :when (not (contains? (:profiles processing) profile-id))]
                   (if-let [processed-id (geni-id (get-in processed [:profiles (keyword profile-id)]))]  
                     [[profile-id processed-id]]
-                    (let [[fams record] (indi/indi (lookup-label records profile-id))]
+                    (let [[fams record] (indi/indi (get records profile-id))]
                       [[profile-id record] (remove #{fam-id} fams)])))]
     [{:profiles (into {} (map first results))
       :unions {fam-id fam}}
@@ -46,7 +43,7 @@
 (defn unions [records fams]
   (partition-fams
    (for [fam fams]
-     [fam (workaround (fam/fam (lookup-label records fam)))])))
+     [fam (workaround (fam/fam (get records fam)))])))
 
 (defn prepare-group [records processed group]
   (loop [processing {}
@@ -75,9 +72,9 @@
 
 (defn import-gedcom
   [file label token]
-  (let [records (ged/parse-gedcom-records file)]
+  (let [records (ged/parse-gedcom file)]
     (loop [processed {:profiles {(keyword label) (:id (geni/read "/profile" {:token token}))}}
-           fams-to-process (->> label (lookup-label records) indi/indi first)]
+           fams-to-process (-> (get records label) indi/indi first)]
       (when (seq fams-to-process)
         (let [fam-groups (unions records fams-to-process)
               [done unprocessed] (import-groups records token processed fam-groups)]
