@@ -19,8 +19,9 @@
                       :when (not (contains? (:profiles processing) profile-id))]
                   (if-let [processed-id (geni-id (get-in processed [:profiles (keyword profile-id)]))]  
                     [[profile-id processed-id]]
-                    (let [[fams record] (indi/indi (get records profile-id))]
-                      [[profile-id record] (remove #{fam-id} fams)])))]
+                    (let [record (indi/indi (get records profile-id))]
+                      [[profile-id (indi/without-fams record)]
+                       (remove #{fam-id} (indi/fams record))])))]
     [{:profiles (into {} (map first results))
       :unions {fam-id fam}}
      (mapcat second results)]))
@@ -74,7 +75,7 @@
   [file label token]
   (let [records (ged/parse-gedcom file)]
     (loop [processed {:profiles {(keyword label) (:id (geni/read "/profile" {:token token}))}}
-           fams-to-process (-> (get records label) indi/indi first)]
+           fams-to-process (indi/fams (indi/indi (get records label)))]
       (when (seq fams-to-process)
         (let [fam-groups (unions records fams-to-process)
               [done unprocessed] (import-groups records token processed fam-groups)]

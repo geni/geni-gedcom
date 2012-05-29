@@ -144,9 +144,17 @@
   "Parse an INDI record and return a map suitable for passing
   to the Geni API."
   [records]
-  (let [parsed (reduce merge (map to-geni records))
-        final (if (contains? parsed :is_alive)
-                parsed
-                (assoc parsed :is_alive true))]
-    [(apply concat ((juxt :child :spouse) final))
-     (dissoc final :child :spouse)]))
+  (let [parsed (reduce merge (map to-geni records))]
+    (if (contains? parsed :is_alive)
+      parsed
+      (assoc parsed :is_alive true))))
+
+(defn fams
+  "Return the FAM links for an already parsed INDI record."
+  [indi]
+  (mapcat indi [:child :spouse]))
+
+(defn without-fams
+  "Return the INDI record with fam links removed."
+  [indi]
+  (dissoc indi :child :spouse))
