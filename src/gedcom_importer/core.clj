@@ -15,7 +15,7 @@
   (when s (last (.split s "/"))))
 
 (defn process-profiles [records processed processing fam-id fam]
-  (let [results (for [profile-id (mapcat val fam)
+  (let [results (for [profile-id (fam/indis fam)
                       :when (not (contains? (:profiles processing) profile-id))]
                   (if-let [processed-id (geni-id (get-in processed [:profiles (keyword profile-id)]))]  
                     [[profile-id processed-id]]
@@ -26,49 +26,44 @@
       :unions {fam-id fam}}
      (mapcat second results)]))
 
-(defn workaround [fam]
-  (if (:partners fam)
-    fam
-    (assoc fam :partners [])))
-
 (defn partition-fams
-  "Returns a seq of groups of unions whose cumulative number of profiles is less than 100."
-  [unions]
-  (loop [max 0 groups [] acc [] [group & rest] unions]
-    (let [max (+ max (count (mapcat val (second group))))]
-      (cond
-       (nil? group) (conj groups acc)
-       (>= max 100) (recur 0 (conj groups acc) [group] rest)
-       :else (recur max groups (conj acc group) rest)))))
-
-(defn unions [records fams]
-  (partition-fams
-   (for [fam fams]
-     [fam (workaround (fam/fam (get records fam)))])))
+  "Returns a seq of groups of label/union pairs whose cumulative number of profiles is less than 100."
+  [records fams]
+  (loop [num-profiles 0, groups [], group [], fams fams]
+    (if (seq fams)
+      (let [union (fam/fam (get records (first fams)))
+            num-profiles (+ num-profiles (count (fam/indis union)))]
+        (if (>= num-profiles 100)
+          (recur 0 (conj groups group) [[fam union]] (rest fams))
+          (recur num-profiles groups (conj group [fam union]) (rest fams))))
+      (conj groups group))))
 
 (defn prepare-group [records processed group]
   (loop [processing {}
          unprocessed []
-         [[fam-id record] & rest] group]
-    (if fam-id
-      (let [[tree links] (process-profiles records processed processing fam-id record)]
-        (recur (merge-with merge processing tree) (concat unprocessed links) rest))
+         group group]
+    (if (seq group)
+      (let [[fam-id union] (first group)
+            [tree links] (process-profiles records processed processing fam-id union)]
+        (recur (merge-with merge processing tree)
+               (concat unprocessed links)
+               (rest group)))
       [processing unprocessed])))
 
 (defn debug [message item]
   (spit "ftest" (str message (with-out-str (pprint item))) :append true)
   item)
 
-(defn import-groups [records token processed groups]
+(defn import-groups [records token processed fams]
   (loop [processed processed
          unprocessed []
-         [group & rest] groups]
-    (if group
-      (let [[tree links] (prepare-group records processed group)]
+         groups (partition-fams records fams-to-process)]
+    (if (seq groups)
+      (let [[tree links] (prepare-group records processed (first group))]
         (debug "\n\nprepared\n\n" tree)
         (recur (merge-with merge processed (debug "\n\nimporting\n\n" (import-group tree token)))
                (concat unprocessed links)
-               rest))
+               (rest groups)))
       [processed unprocessed])))
 
 (defn import-gedcom
@@ -77,6 +72,5 @@
     (loop [processed {:profiles {(keyword label) (:id (geni/read "/profile" {:token token}))}}
            fams-to-process (indi/fams (indi/indi (get records label)))]
       (when (seq fams-to-process)
-        (let [fam-groups (unions records fams-to-process)
-              [done unprocessed] (import-groups records token processed fam-groups)]
+        (let [[done unprocessed] (import-groups records token processed fams-to-process)]
           (recur (merge-with merge done processed) unprocessed))))))
