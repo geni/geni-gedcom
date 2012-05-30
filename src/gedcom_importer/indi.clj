@@ -155,7 +155,7 @@
   (when (map? indi)
     (mapcat indi [:child :partner])))
 
-(defn without-links
+(defn without-fams
   "Return the INDI record with FAM links removed."
   [indi]
   (dissoc indi :child :partner))

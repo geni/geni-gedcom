@@ -24,7 +24,7 @@
   (when (map? fam)
     (mapcat fam [:children :partners])))
 
-(defn without-links
+(defn without-indis
   "Return the FAM record with INDI links removed."
   [fam]
   (dissoc fam :children :partners))

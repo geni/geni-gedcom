@@ -3,7 +3,7 @@
             [useful.utils :refer [adjoin]]
             [useful.map :refer [merge-in update update-each map-to map-vals-with-keys]]
             [gedcom-importer.fam :refer [fam indi-ids]]
-            [gedcom-importer.indi :refer [indi fam-ids]]
+            [gedcom-importer.indi :refer [indi fam-ids without-fams]]
             [geni.core :as geni]))
 
 (defn import-tree
@@ -15,54 +15,51 @@
                           map-vals-with-keys
                           (fn [k v]
                             (get ids k v)))
-        new-ids (geni/write "/profiles/import_tree"
+        results (geni/write "/profiles/import_tree"
                             tree
                             {:access_token token
                              :only_ids 1})]
-    (merge-in ids new-ids)))
+    (apply merge-in ids
+           (map results ["profiles" "unions"]))))
 
 (def ^:dynamic *max-batch-size* 100)
 
-(defn follow-fam
-  "Follow a single FAM record and add all the linked INDI records to the current batch, splitting
+(defn follow
+  "Follow a single INDI record and add all the linked FAM records to the current batch, splitting
   the batch every time we have encountered more than *max-batch-size* profiles."
-  [state fam-id]
-  (let [union (fam (get-in state [:records fam-id]))
-        indi-ids (indi-ids union)
-        followed (into (:followed state) (conj indi-ids fam-id))
-        profile-count (+ (:profile-count state) (count indi-ids))
-        profiles (map-to (fn [indi-id]
-                           (if (contains? followed indi-id)
-                             {}
-                             (indi (get-in state [:records indi-id]))))
-                         indi-ids)
-        tree {:profiles profiles, :unions {fam-id union}}
+  [state indi-id]
+  (let [profile (indi (get-in state [:records indi-id]))
+        followed (:followed state)
+        fam-ids (remove followed (fam-ids profile))
+        unions (map-to #(fam (get-in state [:records %])) fam-ids)
+        tree {:unions unions
+              :profiles {indi-id (without-fams profile)}}
         state (-> state
-                  (assoc :followed followed)
+                  (update :followed into (conj fam-ids indi-id))
                   (update :to-follow into (remove followed
-                                                  (mapcat fam-ids (vals profiles)))))]
-    (if (>= profile-count *max-batch-size*)
+                                                  (mapcat indi-ids (vals unions)))))]
+    (if (= (:profile-count state) *max-batch-size*)
       (-> state
           (update :batches conj (:batch state))
           (assoc :batch tree
                  :profile-count 0))
       (-> state
           (update :batch merge-in tree)
-          (assoc :profile-count profile-count)))))
+          (update :profile-count inc)))))
 
 (defn prepare-gedcom
   "Prepare a set of GEDCOM records for import by walking over the graph of INDI and FAM records and
   splitting the records into batches for import."
-  [records label id]
-  (loop [state {:ids {label id}
+  [records label]
+  (loop [state {:records records
                 :followed #{}
                 :profile-count 0
-                :to-follow (fam-ids (indi (get records label)))}]
-    (if-let [fams (seq (:to-follow state))]
+                :to-follow [label]}]
+    (if-let [indi-ids (seq (:to-follow state))]
       (recur
-       (reduce follow-fam
+       (reduce follow
                (dissoc state :to-follow)
-               fams))
+               indi-ids))
       (conj (:batches state)
             (:batch state)))))
 
@@ -70,7 +67,8 @@
   "Import the given GEDCOM file using the Geni API. The provided label identifies yourself in the
   GEDCOM. Token is expected to be a Geni OAuth access token."
   [file label token]
-  (let [id (:id (geni/read "/profile" {:access_token token}))
+  (let [id (get (geni/read "/profile" {:access_token token}) "id")
         records (parse-gedcom file)]
-    (reduce (partial import-tree token) {}
-            (prepare-gedcom records label id))))
+    (reduce (partial import-tree token)
+            {label id}
+            (prepare-gedcom records label))))
