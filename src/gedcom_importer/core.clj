@@ -41,7 +41,7 @@
         batch (merge-in (:batch state) tree)]
     (if (or (< *max-batch-size* (count (:unions batch)))
             (< *max-batch-size* (count (:profiles batch))))
-      (-> state
+      (-> state ;; the batch is too big, start a new batch
           (assoc :batch tree)
           (update :batches conj (:batch state)))
       (assoc state :batch batch))))
