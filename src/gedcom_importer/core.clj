@@ -37,15 +37,14 @@
         state (-> state
                   (update :followed into (conj fam-ids indi-id))
                   (update :to-follow into (remove followed
-                                                  (mapcat indi-ids (vals unions)))))]
-    (if (= (:profile-count state) *max-batch-size*)
+                                                  (mapcat indi-ids (vals unions)))))
+        batch (merge-in (:batch state) tree)]
+    (if (or (< *max-batch-size* (count (:unions batch)))
+            (< *max-batch-size* (count (:profiles batch))))
       (-> state
-          (update :batches conj (:batch state))
-          (assoc :batch tree
-                 :profile-count 0))
-      (-> state
-          (update :batch merge-in tree)
-          (update :profile-count inc)))))
+          (assoc :batch tree)
+          (update :batches conj (:batch state)))
+      (assoc state :batch batch))))
 
 (defn prepare-gedcom
   "Prepare a set of GEDCOM records for import by walking over the graph of INDI and FAM records and
@@ -53,7 +52,6 @@
   [records label]
   (loop [state {:records records
                 :followed #{}
-                :profile-count 0
                 :to-follow [label]}]
     (if-let [indi-ids (seq (:to-follow state))]
       (recur
