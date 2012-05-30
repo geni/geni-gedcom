@@ -149,12 +149,13 @@
       parsed
       (assoc parsed :is_alive true))))
 
-(defn fams
+(defn fam-ids
   "Return the FAM links for an already parsed INDI record."
   [indi]
-  (mapcat indi [:child :partner]))
+  (when (map? indi)
+    (mapcat indi [:child :partner])))
 
-(defn without-fams
+(defn without-links
   "Return the INDI record with FAM links removed."
   [indi]
   (dissoc indi :child :partner))

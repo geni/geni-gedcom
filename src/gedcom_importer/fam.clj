@@ -18,12 +18,13 @@
   [record]
   (reduce adjoin {} (map to-geni record)))
 
-(defn indis
+(defn indi-ids
   "Return the INDI links for an already parsed FAM record."
   [fam]
-  (mapcat fam [:children :partners]))
+  (when (map? fam)
+    (mapcat fam [:children :partners])))
 
-(defn without-indis
+(defn without-links
   "Return the FAM record with INDI links removed."
   [fam]
   (dissoc fam :children :partners))
