@@ -29,7 +29,7 @@
   [state fam-id]
   (let [union (fam (get-in state [:records fam-id]))
         indi-ids (indi-ids union)
-        followed (into (:followed state) (conj indi-ids) fam-id)
+        followed (into (:followed state) (conj indi-ids fam-id))
         profile-count (+ (:profile-count state) (count indi-ids))
         profiles (map-to (fn [indi-id]
                            (if (contains? followed indi-id)
@@ -56,6 +56,7 @@
   [records label id]
   (loop [state {:ids {label id}
                 :followed #{}
+                :profile-count 0
                 :to-follow (fam-ids (indi (get records label)))}]
     (if-let [fams (seq (:to-follow state))]
       (recur
@@ -69,7 +70,7 @@
   "Import the given GEDCOM file using the Geni API. The provided label identifies yourself in the
   GEDCOM. Token is expected to be a Geni OAuth access token."
   [file label token]
-  (let [id (:id (geni/read "/profile" {:token token}))
+  (let [id (:id (geni/read "/profile" {:access_token token}))
         records (parse-gedcom file)]
     (reduce (partial import-tree token) {}
             (prepare-gedcom records label id))))
