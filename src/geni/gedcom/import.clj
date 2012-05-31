@@ -19,8 +19,7 @@
                             tree
                             {:access_token token
                              :only_ids 1})]
-    (apply merge-in ids
-           (map results ["profiles" "unions"]))))
+    (merge-in ids (get results "imported"))))
 
 (def ^:dynamic *max-batch-size* 100)
 
