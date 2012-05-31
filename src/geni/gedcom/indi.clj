@@ -117,7 +117,7 @@
                                {:circa (boolean approximate)}
                                (string/split date #"\b")))}))
 
-;; BIRT, DEAT, and BAPM all have the same general structure.
+;; BIRT, DEAT, BURI, and BAPM all have the same general structure.
 ;; The difference between them is what key we put the results
 ;; under for passing to the API. Therefore, these methods are
 ;; very simple.
@@ -126,7 +126,8 @@
 
   (defmethod to-geni "BIRT" [record] (event record :birth))
   (defmethod to-geni "DEAT" [record] (assoc (event record :death) :is_alive false))
-  (defmethod to-geni "BAPM" [record] (event record :baptism)))
+  (defmethod to-geni "BAPM" [record] (event record :baptism))
+  (defmethod to-geni "BURI" [record] (event record :burial)))
 
 (defmethod to-geni "FAMS" [record]
   {:partner (map :data (second record))})
