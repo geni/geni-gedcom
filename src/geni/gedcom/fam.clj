@@ -1,5 +1,5 @@
 (ns geni.gedcom.fam
-  (:require [geni.gedcom.common :refer [to-geni get-data]]
+  (:require [geni.gedcom.common :refer [to-geni get-data event]]
             [useful.utils :refer [adjoin]]))
 
 ;; The CHIL tag is the only one that there should ever be
@@ -12,6 +12,9 @@
 
 (defmethod to-geni "WIFE" [record]
   {:partners [(get-data record)]})
+
+(defmethod to-geni "MARR" [record] (event record :marriage))
+(defmethod to-geni "DIV" [record] (event record :divorce))
 
 (defn fam
   "Parse a FAM record into a map of :children and :partners."
