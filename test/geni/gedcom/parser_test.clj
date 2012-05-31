@@ -34,3 +34,7 @@
                (map (partial get-date records)
                     ["@I2@" "@I3@" "@I4@" "@I5@" "@I6@"])))))
 
+(deftest union-test
+  (let [fam (fam/fam (records "@F0@"))]
+    (is (= (:partners fam) ["@I0@" "@I2@"]))
+    (is (= (:children fam) ["@I3@" "@I4@" "@I5@"]))))
