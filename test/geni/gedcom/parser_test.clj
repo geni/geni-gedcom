@@ -24,8 +24,9 @@
     (testing "Name is parsed into it's correct portion."
       (is (= {:first_name "Mary"
               :middle_name "Marrison Goosian"
-              :last_name "Swanson"}
-             (select-keys person [:first_name :middle_name :last_name]))))))
+              :last_name "Swanson"
+              :suffix "jr"}
+             (select-keys person [:first_name :middle_name :last_name :suffix]))))))
 
 (deftest date-test
   (let [expected {:year 1994 :day 2 :month 2 :circa false}
