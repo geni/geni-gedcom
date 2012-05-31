@@ -1,5 +1,5 @@
-(ns gedcom-importer.fam
-  (:require [gedcom-importer.to-geni :refer [to-geni get-data]]
+(ns geni.gedcom.fam
+  (:require [geni.gedcom.common :refer [to-geni get-data]]
             [useful.utils :refer [adjoin]]))
 
 ;; The CHIL tag is the only one that there should ever be

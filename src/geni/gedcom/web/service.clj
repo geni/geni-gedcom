@@ -1,9 +1,9 @@
-(ns gedcom-importer.web.service
+(ns geni.gedcom.web
   (:require [noir.core :refer [defpage defpartial]]
             [noir.server :refer [start]]
             [noir.request :as request]
             [hiccup.form :as form]
-            [gedcom-importer.core :as importer]
+            [geni.gedcom.import :refer [import-gedcom]]
             [geni.core :as geni]))
 
 (defpartial form []
@@ -21,7 +21,7 @@
      (form/submit-button "Submit")]])
 
 (defpage [:post "/import"] {:keys [gedcom indi token]}
-  (importer/import-gedcom (:tempfile gedcom) indi token)
+  (import-gedcom (:tempfile gedcom) indi token)
   "DONE")
 
 (defpage "/" []

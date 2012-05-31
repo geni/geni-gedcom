@@ -1,6 +1,6 @@
-(ns gedcom-importer.indi
+(ns geni.gedcom.indi
   (:require [clojure.string :as string]
-            [gedcom-importer.to-geni :refer [to-geni get-data]]
+            [geni.gedcom.common :refer [to-geni get-data]]
             [useful.utils :as utils]))
 
 ;; Parse the name of an individual into first_name, middle_name

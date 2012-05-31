@@ -1,4 +1,4 @@
-(ns gedcom-importer.to-geni)
+(ns geni.gedcom.common)
 
 (defmulti to-geni
   "Parse pieces of GEDCOM records into items consumable by the Geni API."

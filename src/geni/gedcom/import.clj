@@ -1,9 +1,9 @@
-(ns gedcom-importer.core
-  (:require [clj-gedcom.core :refer [parse-gedcom]]
+(ns geni.gedcom.import
+  (:require [gedcom.core :refer [parse-gedcom]]
             [useful.utils :refer [adjoin]]
             [useful.map :refer [merge-in update update-each map-to map-vals-with-keys]]
-            [gedcom-importer.fam :refer [fam indi-ids]]
-            [gedcom-importer.indi :refer [indi fam-ids without-fams]]
+            [geni.gedcom.fam :refer [fam indi-ids]]
+            [geni.gedcom.indi :refer [indi fam-ids without-fams]]
             [geni.core :as geni]))
 
 (defn import-tree
