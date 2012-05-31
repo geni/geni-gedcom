@@ -1,0 +1,81 @@
+0 @I0@ INDI
+1 NAME Mary Marrison Goosian /Swanson/
+1 SEX M
+1 BIRT
+2 DATE 2 FEB 1994
+2 PLAC The Library
+2 ADDR
+3 CITY Metropolis
+3 STAE Arkham
+3 CTRY Westeros
+1 DEAT
+2 DATE 2 FEB 1994
+2 PLAC The Library
+2 ADDR
+3 CITY Metropolis
+3 STAE Arkham
+3 CTRY Westeros
+1 BAPM
+2 DATE 2 FEB 1994
+2 PLAC The Library
+2 ADDR
+3 CITY Metropolis
+3 STAE Arkham
+3 CTRY Westeros
+1 BURI
+2 DATE 2 FEB 1994
+2 PLAC The Library
+2 ADDR
+3 CITY Metropolis
+3 STAE Arkham
+3 CTRY Westeros
+0 @I2@ INDI
+1 NAME Nobody /McNobodysonone/
+1 SEX M
+1 BIRT
+2 DATE 2 FEB 1994
+2 PLAC The Library
+2 ADDR
+3 CITY Metropolis
+3 STAE Arkham
+3 CTRY Westeros
+0 @I3@ INDI
+1 NAME Nobody /McNobodysontwo/
+1 SEX M
+1 BIRT
+2 DATE 1994/2/2
+2 PLAC The Library
+2 ADDR
+3 CITY Metropolis
+3 STAE Arkham
+3 CTRY Westeros
+0 @I4@ INDI
+1 NAME Nobody /McNobodysonthree/
+1 SEX M
+1 BIRT
+2 DATE 2/2/1994
+2 PLAC The Library
+2 ADDR
+3 CITY Metropolis
+3 STAE Arkham
+3 CTRY Westeros
+0 @I5@ INDI
+1 NAME Nobody /McNobodysonfour/
+1 SEX M
+1 BIRT
+2 DATE 1994-2-2
+2 PLAC The Library
+2 ADDR
+3 CITY Metropolis
+3 STAE Arkham
+3 CTRY Westeros
+0 @I6@ INDI
+1 NAME Nobody /McNobodysonfive/
+1 SEX M
+1 BIRT
+2 DATE 2-2-1994
+2 PLAC The Library
+2 ADDR
+3 CITY Metropolis
+3 STAE Arkham
+3 CTRY Westeros
