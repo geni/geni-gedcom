@@ -51,7 +51,8 @@
   [records label]
   (loop [state {:records records
                 :followed #{}
-                :to-follow [label]}]
+                :to-follow [label]
+                :batches []}]
     (if-let [indi-ids (seq (:to-follow state))]
       (recur
        (reduce follow
