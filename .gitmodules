@@ -1,0 +1,3 @@
+[submodule "gedcoms/private"]
+	path = gedcoms/private
+	url = git@github.com:geni/gedcom-test.git
