@@ -43,12 +43,12 @@
       steps)))
 
 (defn in-batches
-  "Combine the steps produced by walk-gedcom into batches suitable for passing to the API."
-  [steps]
+  "Combine the steps produced by walk-gedcom into batches of no more than n profiles or unions."
+  [n steps]
   (glue merge-in
         (constantly true)
         (fn [batch]
-          (some #(< *max-batch-size* (count (get batch %)))
+          (some #(< n (count (get batch %)))
                 [:unions :profiles]))
         steps))
 
@@ -60,4 +60,5 @@
         records (map-vals (parse-gedcom file) to-geni)]
     (reduce (partial import-tree token)
             {label id}
-            (in-batches (walk-gedcom records label)))))
+            (in-batches *max-batch-size*
+                        (walk-gedcom records label)))))
