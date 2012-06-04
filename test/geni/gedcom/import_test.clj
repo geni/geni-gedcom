@@ -21,4 +21,4 @@
     (testing "All profiles mentioned in unions are in profiles."
       (is (not (some (comp not unions) (keys (:profiles tree))))))
     (testing "Number of steps."
-      (is (= 2 (count steps))))))
+      (is (= 2 (count records))))))
