@@ -1,10 +1,13 @@
 (ns geni.gedcom.common
   (:require [clojure.string :as string]
-            [useful.utils :as utils]))
+            [useful.fn :refer [to-fix fix]]
+            [useful.utils :refer [adjoin]]))
 
 (defmulti to-geni
   "Parse pieces of GEDCOM records into items consumable by the Geni API."
-  first)
+  (to-fix vector? first
+          map?    :tag
+          nil))
 
 (defmethod to-geni :default [_] nil)
 
@@ -112,4 +115,80 @@
                         :else (reduce parse-component {} (string/split date #"\b"))))}))
 
 (defn event [record k]
-  {k (reduce utils/adjoin (mapcat #(map to-geni %) (second record)))})
+  {k (reduce adjoin (mapcat #(map to-geni %) (second record)))})
+
+;; Profile methods
+
+;; Parse the name of an individual into first_name, middle_name
+;; last_name, and suffix parts. The first name is always the very
+;; first part of a name. The middle name is everything after the
+;; first name up to the first slash (/) that delimits the last
+;; name. After the next / is the suffix.
+(defmethod to-geni "NAME"
+  [record]
+  (let [name (get-data record)
+        [[first-name & middles] [last-name suffix]]
+        (split-with
+          #(not (.startsWith % "/"))
+          (map first (re-seq #"(/[^/]*\*?/\*?|[^* ]+\*?)"
+                             (string/replace-first name #"/" " /"))))]
+    {:first_name first-name
+     :middle_name (when middles (string/join " " middles))
+     :last_name (when last-name (last (re-find #"/(.*)/" last-name)))
+     :suffix suffix}))
+
+;; BIRT, DEAT, BURI, and BAPM all have the same general structure.
+;; The difference between them is what key we put the results
+;; under for passing to the API. Therefore, these methods are
+;; very simple.
+(defmethod to-geni "BIRT" [record] (event record :birth))
+(defmethod to-geni "DEAT" [record] (assoc (event record :death) :is_alive false))
+(defmethod to-geni "BAPM" [record] (event record :baptism))
+(defmethod to-geni "BURI" [record] (event record :burial))
+
+(defmethod to-geni "FAMS" [record]
+  {:partner (map :data (second record))})
+
+(defmethod to-geni "FAMC" [record]
+  {:child (map :data (second record))})
+
+(defmethod to-geni "SEX" [record]
+  {:gender (case (get-data record)
+             "M" "male"
+             "F" "female"
+             nil)})
+
+(defmethod to-geni "INDI" [record]
+  (let [profile (reduce adjoin (map to-geni record))]
+    (if (contains? profile :is_alive)
+      profile
+      (assoc profile :is_alive true))))
+
+(defn union-ids
+  "Return the union ids linked to from this profile."
+  [profile]
+  (mapcat profile [:child :partner]))
+
+;; Union methods
+
+;; The CHIL tag is the only one that there should ever be
+;; more than one of inside of a FAM record.
+(defmethod to-geni "CHIL" [record]
+  {:children (map :data (second record))})
+
+(defmethod to-geni "HUSB" [record]
+  {:partners [(get-data record)]})
+
+(defmethod to-geni "WIFE" [record]
+  {:partners [(get-data record)]})
+
+(defmethod to-geni "MARR" [record] (event record :marriage))
+(defmethod to-geni "DIV" [record] (event record :divorce))
+
+(defmethod to-geni "FAM" [record]
+  (reduce adjoin {} (map to-geni record)))
+
+(defn profile-ids
+  "Return the profile ids linked to from this union."
+  [union]
+  (mapcat union [:children :partners]))
