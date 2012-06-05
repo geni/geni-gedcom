@@ -115,7 +115,8 @@
                         :else (reduce parse-component {} (string/split date #"\b"))))}))
 
 (defn event [record k]
-  {k (reduce adjoin (mapcat #(map to-geni %) (second record)))})
+  (when-let [value (reduce adjoin (mapcat #(map to-geni %) (second record)))]
+    {k value}))
 
 ;; Profile methods
 
