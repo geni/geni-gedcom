@@ -2,7 +2,7 @@
   (:require [gedcom.core :refer [parse-gedcom]]
             [useful.utils :refer [queue]]
             [useful.seq :refer [glue]]
-            [useful.map :refer [merge-in update-each map-to map-vals map-vals-with-keys]]
+            [useful.map :refer [merge-in update-each map-to map-vals map-vals-with-keys remove-vals]]
             [geni.gedcom.common :refer [to-geni profile-ids union-ids]]
             [geni.core :as geni]))
 
@@ -32,7 +32,7 @@
          steps []]
     (if-let [profile-id (first to-follow)]
       (let [union-ids   (remove followed? (union-ids (get records profile-id)))
-            unions      (map-to records union-ids)
+            unions      (remove-vals (map-to records union-ids) #(< (-> % profile-ids count) 2))
             profile-ids (mapcat profile-ids (vals unions))
             profiles    (map-to records profile-ids)]
         (recur (into (pop to-follow) (remove followed? profile-ids))
