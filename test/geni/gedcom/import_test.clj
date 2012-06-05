@@ -5,8 +5,10 @@
             [geni.gedcom.import :refer [walk-gedcom in-batches]]
             [clojure.test :refer :all]))
 
+(def dir (System/getProperty "user.dir"))
+
 (defn gedcom [file]
-  (map-vals (parse-gedcom (str (System/getProperty "user.dir") "/gedcoms/" file)) to-geni))
+  (map-vals (parse-gedcom (str dir "/gedcoms/" file)) to-geni))
 
 (defn one-tree [batches]
   (reduce merge-in batches))
@@ -23,9 +25,10 @@
     (testing "Number of steps."
       (is (= 2 (count records))))))
 
-(deftest in-batches-test
-  (let [records (walk-gedcom (gedcom "private/steadman-BloodTree.ged") "@I0@")]
-    (testing "Number of profiles stays below specified number."
-      (is (every? #(<= (count %) 30) (map :profiles (in-batches 30 records)))))
-    (testing "Number of unions stays below specified number."
-      (is (every? #(<= (count %) 10) (map :unions (in-batches 10 records)))))))
+(when (> 1 (count (.list (java.io.File. (str dir "/gedcoms/private")))))
+  (deftest in-batches-test
+    (let [records (walk-gedcom (gedcom "private/steadman-BloodTree.ged") "@I0@")]
+      (testing "Number of profiles stays below specified number."
+        (is (every? #(<= (count %) 30) (map :profiles (in-batches 30 records)))))
+      (testing "Number of unions stays below specified number."
+        (is (every? #(<= (count %) 10) (map :unions (in-batches 10 records))))))))
