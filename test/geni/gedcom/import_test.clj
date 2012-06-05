@@ -2,7 +2,7 @@
   (:require [clj-gedcom.core :refer [parse-gedcom]]
             [geni.gedcom.common :refer [to-geni]]
             [useful.map :refer [map-vals merge-in]]
-            [geni.gedcom.import :refer [walk-gedcom]]
+            [geni.gedcom.import :refer [walk-gedcom in-batches]]
             [clojure.test :refer :all]))
 
 (defn gedcom [file]
@@ -22,3 +22,10 @@
       (is (not (some (comp not unions) (keys (:profiles tree))))))
     (testing "Number of steps."
       (is (= 2 (count records))))))
+
+(deftest in-batches-test
+  (let [records (walk-gedcom (gedcom "private/steadman-BloodTree.ged") "@I0@")]
+    (testing "Number of profiles stays below specified number."
+      (is (every? #(<= (count %) 30) (map :profiles (in-batches 30 records)))))
+    (testing "Number of unions stays below specified number."
+      (is (every? #(<= (count %) 10) (map :unions (in-batches 10 records)))))))
