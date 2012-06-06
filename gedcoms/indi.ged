@@ -79,6 +79,26 @@
 3 CITY Metropolis
 3 STAE Arkham
 3 CTRY Westeros
+0 @I7@ INDI
+1 NAME Nobody /McNobodysonsix/
+1 SEX M
+1 BIRT
+2 DATE 2.feb1994
+2 PLAC The Library
+2 ADDR
+3 CITY Metropolis
+3 STAE Arkham
+3 CTRY Westeros
+0 @I8@ INDI
+1 NAME Nobody /McNobodysonseven/
+1 SEX M
+1 BIRT
+2 DATE 2 feb1994
+2 PLAC The Library
+2 ADDR
+3 CITY Metropolis
+3 STAE Arkham
+3 CTRY Westeros
 0 @F0@ FAM
 1 HUSB @I2@
 1 WIFE @I0@

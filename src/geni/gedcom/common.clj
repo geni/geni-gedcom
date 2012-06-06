@@ -96,9 +96,11 @@
   structure."
   [acc component]
   (cond (re-find #"\d+" component)
-        (assoc acc
-               (if (< 2 (count component)) :year :day)
-               (Integer. component))
+        (let [[_ month num] (re-find #"([a-zA-Z]*)(\d+)" component)
+              date {(if (< 2 (count num)) :year :day) (Integer. num)}]
+          (if (seq month)
+            (merge acc (assoc date :month (lookup-month month)))
+            (merge acc date)))
         (re-find #"\W" component) acc
         :else
         (assoc acc :month (lookup-month component))))

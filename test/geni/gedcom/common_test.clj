@@ -37,7 +37,7 @@
         get-date (fn [label] (get-in (to-geni (records label)) [:birth :date]))]
     (is (apply = expected
                (map get-date
-                    ["@I2@" "@I3@" "@I4@" "@I5@" "@I6@"])))))
+                    ["@I2@" "@I3@" "@I4@" "@I5@" "@I6@" "@I7@" "@I8@"])))))
 
 (deftest union-test
   (let [union (to-geni (records "@F0@"))]
