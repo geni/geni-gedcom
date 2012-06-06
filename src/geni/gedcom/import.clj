@@ -57,7 +57,7 @@
   GEDCOM. Token is expected to be a Geni OAuth access token."
   [file label token]
   (let [id (get (geni/read "/profile" {:access_token token}) "id")
-        records (map-vals (parse-gedcom file) to-geni)]
+        records (parse-gedcom file to-geni)]
     (reduce (partial import-tree token)
             {label id}
             (in-batches *max-batch-size*
