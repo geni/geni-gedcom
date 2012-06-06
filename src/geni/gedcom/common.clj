@@ -35,10 +35,11 @@
 (defn ^:private clean-date
   "Remove characters we don't care about from a DATE."
   [date]
-  (string/replace
+  (string/trim
+   (string/replace
     date
-    #"b\.?c\.?|a\.?d\.?|c\.?a?\.|circa|unknown|FROM|TO|BET|BTN|AFT|BEF|AND|about|ab|ABT|CAL|EST|INT|\(.*\)"
-    ""))
+    #"b\.?c\.?|a\.?d\.?|c\.?a?\.|circa|unknown|antes\s+de|FROM|TO|BET|BTN|AFT|BEF|AND|about|ab|ABT|CAL|EST|INT|\(.*\)"
+    "")))
 
 (defn ^:private date-to-map
   "For simple date structures where each segment is simply
@@ -108,7 +109,7 @@
 (defmethod to-geni "DATE" [record]
   (let [plac (get-data record)
         date (clean-date plac)
-        approximate (re-find #"about|ab|ABT|CAL|EST|INT" plac)]
+        approximate (re-find #"about|ab|ABT|CAL|EST|INT|antes\s+de" plac)]
     {:date (merge {:circa (boolean approximate)}
                   (cond (re-find #"\d{1,2}/\d{1,2}/\d{4}" date) (date-to-map #"/" date)
                         (re-find #"\d{4}/\d{1,2}/\d{1,2}" date) (date-to-map #"/" date :reverse)
