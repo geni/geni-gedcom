@@ -1,7 +1,7 @@
 (ns geni.gedcom.import
   (:require [gedcom.core :refer [parse-gedcom]]
             [useful.utils :refer [queue]]
-            [useful.seq :refer [glue]]
+            [useful.seq :refer [glue lazy-loop]]
             [useful.map :refer [merge-in update-each map-to map-vals map-vals-with-keys remove-vals]]
             [geni.gedcom.common :refer [to-geni profile-ids union-ids]]
             [geni.core :as geni]))
@@ -27,20 +27,20 @@
   "Walk GEDCOM records starting at label by walking over the graph of INDI and FAM records.
   Returns a list of the profiles and unions encountered at each step."
   [records label]
-  (loop [to-follow (queue [label])
-         followed? #{label}
-         steps []]
-    (if-let [profile-id (first to-follow)]
+  (lazy-loop [to-follow (queue [label])
+              followed? #{label}]
+    (when-let [profile-id (first to-follow)]
       (let [union-ids   (remove followed? (union-ids (get records profile-id)))
             unions      (remove-vals (map-to records union-ids) #(< (-> % profile-ids count) 2))
             profile-ids (mapcat profile-ids (vals unions))
-            profiles    (map-to records profile-ids)]
-        (recur (into (pop to-follow) (remove followed? profile-ids))
-               (into followed? (concat union-ids profile-ids))
-               (if (every? empty? [unions profiles])
-                 steps
-                 (conj steps {:unions unions, :profiles profiles}))))
-      steps)))
+            profiles    (map-to records profile-ids)
+
+            new-follow-queue (into (pop to-follow) (remove followed? profile-ids))
+            new-followed (into followed? (concat union-ids profile-ids))]
+        (if (every? empty? [unions profiles])
+          (recur new-follow-queue new-followed)
+          (cons {:unions unions, :profiles profiles}
+                (lazy-recur new-follow-queue new-followed)))))))
 
 (defn in-batches
   "Combine the steps produced by walk-gedcom into batches of no more than n profiles or unions."
