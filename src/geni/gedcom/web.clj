@@ -6,7 +6,8 @@
             [geni.gedcom.import :refer [import-gedcom]]
             [geni.core :as geni]
             [clojure.java.io :refer [resource reader]])
-  (:import java.util.Properties))
+  (:import java.util.Properties)
+  (:gen-class))
 
 (defn read-properties []
   (with-open [f (reader (resource "gedcom.properties"))]
