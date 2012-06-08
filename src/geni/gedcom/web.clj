@@ -1,8 +1,8 @@
 (ns geni.gedcom.web
   (:require [noir.core :refer [defpage defpartial]]
             [noir.server :refer [start gen-handler]]
-            [noir.request :as request]
-            [hiccup.form :as form]
+            [hiccup.form :refer [label text-area file-upload submit-button]]
+            [hiccup.util :refer [*base-url*]]
             [geni.gedcom.import :refer [import-gedcom]]
             [geni.core :as geni]
             [clojure.java.io :refer [resource reader]])
@@ -17,20 +17,19 @@
 
 (defpartial form []
   [:body
-   [:form {:method "POST" :action "/import" :enctype "multipart/form-data"}
-     (form/label "token-label" "Geni API Token: ")
-     (form/text-area "token")
+   [:form {:method "POST" :action (str *base-url* "/import") :enctype "multipart/form-data"}
+     (label "token-label" "Geni API Token: ")
+     (text-area "token")
      [:br]
-     (form/label "record-label" "Your INDI Record: ")
-     (form/text-area "indi")
+     (label "record-label" "Your INDI Record: ")
+     (text-area "indi")
      [:br]
-     (form/label "gedcom-label" "GEDCOM File: ")
-     (form/file-upload "gedcom")
+     (label "gedcom-label" "GEDCOM File: ")
+     (file-upload "gedcom")
      [:br]
-     (form/submit-button "Submit")]])
+     (submit-button "Submit")]])
 
 (defpage [:post "/import"] {:keys [gedcom indi token]}
-  (prn token)
   (binding [geni/*base* (config "url")
             geni/*insecure* (Boolean/valueOf (config "insecure"))]
     (import-gedcom (:tempfile gedcom) indi token))
@@ -39,10 +38,12 @@
 (defpage "/" []
   (form))
 
-(def handler (gen-handler {:mode :prod}))
+(def handler (gen-handler {:mode :prod
+                           :base-url (config "base.url")}))
 
 (defn -main []
-  (start 8080))
+  (start 8080 {:mode :prod
+               :base-url (config "base.url")}))
 
 ;; war test code
 (comment
