@@ -106,6 +106,7 @@
          {:names (names results)})
        {:error results}))))
 
+;; Need to ask Scott to add count keys to import_tree's results.
 (defn count-profiles
   "Count the number of profiles returned by the Geni API."
   [results]
