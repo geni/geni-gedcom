@@ -1,6 +1,7 @@
 (ns geni.gedcom.web.views.interface
   (:require [noir.core :refer [defpartial defpage]]
             [noir.session :as session]
+            [noir.response :refer [content-type]]
             [geni.gedcom.web.models.interface :refer [request-upload request-import]]
             [hiccup.form :refer [label text-area file-upload submit-button drop-down]]
             [hiccup.util :refer [*base-url*]]))
@@ -27,12 +28,12 @@
 (defpage [:post "/pick"] {:keys [token gedcom]}
   (session/put! :token token)
   (let [results (request-upload (:tempfile gedcom) token)]
-    (if-let [error (:error results)]
-      (:message error)
+    (if-let [error (get results "error")]
+      (content-type "text/plain" error)
       (pick (get results "names")))))
 
 (defpage [:post "/finish"] {:keys [indi]}
-  (request-import indi (session/get :token)))
+  (content-type "text/plain" (request-import indi (session/get :token))))
 
 (defpage "/" []
   (upload))
