@@ -53,12 +53,10 @@
         steps))
 
 (defn import-gedcom
-  "Import the given GEDCOM file using the Geni API. The provided label identifies yourself in the
+  "Import the given GEDCOM recrds using the Geni API. The provided label identifies yourself in the
   GEDCOM. Token is expected to be a Geni OAuth access token."
-  [file label token]
-  (let [id (get (geni/read "/profile" {:access_token token}) "id")
-        records (parse-gedcom file to-geni)]
-    (reduce (partial import-tree token)
-            {label id}
-            (in-batches *max-batch-size*
-                        (walk-gedcom records label)))))
+  [records label token]
+  (reduce (partial import-tree token)
+          {label (get (geni/read "/profile" {:access_token token}) "id")}
+          (in-batches *max-batch-size*
+                      (walk-gedcom records label))))
