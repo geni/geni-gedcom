@@ -1,7 +1,7 @@
 (ns geni.gedcom.web.common
-  (:require [clojure.java.io :refer [reader resource]])
-  (:import (java.io StringWriter PrintWriter)
-           java.util.Properties))
+  (:require [clojure.java.io :refer [reader resource]]
+            [clojure.stacktrace :refer [print-stack-trace]])
+  (:import java.util.Properties))
 
 (defmacro catch-exception-string
   "If an exception occurs while excuting body, print
@@ -9,9 +9,7 @@
   [& body]
   `(try ~@body
         (catch Exception e#
-          (let [writer# (StringWriter.)]
-            (.printStackTrace e# (PrintWriter. writer#))
-            (str writer#)))))
+          (with-out-str (print-stack-trace e#)))))
 
 (defn ^:private read-properties []
   (with-open [f (reader (resource "gedcom.properties"))]
