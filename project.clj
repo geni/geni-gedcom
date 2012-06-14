@@ -11,4 +11,4 @@
   :plugins [[lein-ring "0.7.1"]]
   :ring {:handler geni.gedcom.web/handler
          :war-exclusions [#"gedcom.properties"]}
-  :main geni.gedcom.web)
+  :main geni.gedcom.web.server)
