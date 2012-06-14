@@ -164,9 +164,10 @@
 
 (defmethod to-geni "INDI" [record]
   (let [profile (reduce adjoin (map to-geni record))]
-    (if (contains? profile :is_alive)
-      profile
-      (assoc profile :is_alive true))))
+    (assoc (if (contains? profile :is_alive)
+             profile
+             (assoc profile :is_alive true))
+      :record-type :indi)))
 
 (defn union-ids
   "Return the union ids linked to from this profile."
@@ -190,7 +191,8 @@
 (defmethod to-geni "DIV" [record] (event record :divorce))
 
 (defmethod to-geni "FAM" [record]
-  (reduce adjoin {} (map to-geni record)))
+  (assoc (reduce adjoin {} (map to-geni record))
+    :record-type :fam))
 
 (defn profile-ids
   "Return the profile ids linked to from this union."
