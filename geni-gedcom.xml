@@ -2,5 +2,5 @@
 <Configure id="geniGedcom" class="org.mortbay.jetty.webapp.WebAppContext">
   <Set name="contextPath">/geni-gedcom</Set>
   <Set name="war">
-    <SystemProperty name="jetty.home" default="."/>/webapps/geni-gedcom-0.0.2-standalone.war</Set>
+    <SystemProperty name="jetty.home" default="."/>/webapps/geni-gedcom-0.0.3-standalone.war</Set>
 </Configure>
