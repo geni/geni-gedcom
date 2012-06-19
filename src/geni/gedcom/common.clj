@@ -130,16 +130,16 @@
 ;; name. After the next / is the suffix.
 (defmethod to-geni "NAME"
   [record]
-  (let [name (get-data record)
-        [[first-name & middles] [last-name suffix]]
-        (split-with
-          #(not (.startsWith % "/"))
-          (map first (re-seq #"(/[^/]*\*?/\*?|[^* ]+\*?)"
-                             (string/replace-first name #"/" " /"))))]
-    {:first_name first-name
-     :middle_name (when middles (string/join " " middles))
-     :last_name (when last-name (last (re-find #"/(.*)/" last-name)))
-     :suffix suffix}))
+  (when-let [name (get-data record)]
+    (let [[[first-name & middles] [last-name suffix]]
+          (split-with
+           #(not (.startsWith % "/"))
+           (map first (re-seq #"(/[^/]*\*?/\*?|[^* ]+\*?)"
+                              (string/replace-first name #"/" " /"))))]
+      {:first_name first-name
+       :middle_name (when middles (string/join " " middles))
+       :last_name (when last-name (last (re-find #"/(.*)/" last-name)))
+       :suffix suffix})))
 
 ;; BIRT, DEAT, BURI, and BAPM all have the same general structure.
 ;; The difference between them is what key we put the results
