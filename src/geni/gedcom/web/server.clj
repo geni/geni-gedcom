@@ -5,7 +5,10 @@
             [geni.gedcom.web.views api interface])
   (:gen-class))
 
-(add-middleware wrap-cors :access-control-allow-origin #".*")
+(add-middleware wrap-cors
+                :access-control-allow-origin #".*"
+                :access-control-allow-headers "*"
+                :access-control-allow-methods "*")
 
 (def handler (gen-handler {:mode :prod
                            :base-url (config "base.url")}))
