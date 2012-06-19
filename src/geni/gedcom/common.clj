@@ -107,15 +107,15 @@
         (assoc acc :month (lookup-month component))))
 
 (defmethod to-geni "DATE" [record]
-  (let [plac (get-data record)
-        date (clean-date plac)
-        approximate (re-find #"about|ab|ABT|CAL|EST|INT|antes\s+de" plac)]
-    {:date (merge {:circa (boolean approximate)}
-                  (cond (re-find #"\d{1,2}/\d{1,2}/\d{4}" date) (date-to-map #"/" date)
-                        (re-find #"\d{4}/\d{1,2}/\d{1,2}" date) (date-to-map #"/" date :reverse)
-                        (re-find #"\d{1,2}-\d{1,2}-\d{4}" date) (date-to-map #"-" date)
-                        (re-find #"\d{4}-\d{1,2}-\d{1,2}" date) (date-to-map #"-" date :reverse)
-                        :else (reduce parse-component {} (string/split date #"\b"))))}))
+  (when-let [plac (get-data record)]
+    (let [date (clean-date plac)
+          approximate (re-find #"about|ab|ABT|CAL|EST|INT|antes\s+de" plac)]
+      {:date (merge {:circa (boolean approximate)}
+                    (cond (re-find #"\d{1,2}/\d{1,2}/\d{4}" date) (date-to-map #"/" date)
+                          (re-find #"\d{4}/\d{1,2}/\d{1,2}" date) (date-to-map #"/" date :reverse)
+                          (re-find #"\d{1,2}-\d{1,2}-\d{4}" date) (date-to-map #"-" date)
+                          (re-find #"\d{4}-\d{1,2}-\d{1,2}" date) (date-to-map #"-" date :reverse)
+                          :else (reduce parse-component {} (string/split date #"\b"))))})))
 
 (defn event [record k]
   (when-let [value (reduce adjoin (mapcat #(map to-geni %) (second record)))]
