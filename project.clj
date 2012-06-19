@@ -10,6 +10,6 @@
                  [noir "1.3.0-beta8"]
                  [flatland/ring-cors "0.0.5"]]
   :plugins [[lein-ring "0.7.1"]]
-  :ring {:handler geni.gedcom.web/handler
+  :ring {:handler geni.gedcom.web.server/handler
          :war-exclusions [#"gedcom.properties"]}
   :main geni.gedcom.web.server)
