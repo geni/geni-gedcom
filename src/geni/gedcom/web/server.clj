@@ -1,8 +1,11 @@
 (ns geni.gedcom.web.server
-  (:require [noir.server :refer [gen-handler start]]
+  (:require [noir.server :refer [gen-handler start wrap-route add-middleware]]
+            [ring.middleware.cors :refer [wrap-cors]]
             [geni.gedcom.web.common :refer [config]]
             [geni.gedcom.web.views api interface])
   (:gen-class))
+
+(add-middleware wrap-cors :access-control-allow-origin #".*")
 
 (def handler (gen-handler {:mode :prod
                            :base-url (config "base.url")}))
