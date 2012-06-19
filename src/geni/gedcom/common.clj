@@ -157,10 +157,11 @@
   {:child (map :data (second record))})
 
 (defmethod to-geni "SEX" [record]
-  {:gender (case (get-data record)
-             "M" "male"
-             "F" "female"
-             nil)})
+  (when-let [data (get-data record)]
+    {:gender (case (.toLowerCase data)
+               "m" "male"
+               "f" "female"
+               nil)}))
 
 (defmethod to-geni "INDI" [record]
   (let [profile (reduce adjoin (map to-geni record))]
@@ -197,4 +198,5 @@
 (defn profile-ids
   "Return the profile ids linked to from this union."
   [union]
+  (prn union)
   (mapcat union [:children :partners]))
