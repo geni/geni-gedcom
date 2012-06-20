@@ -40,9 +40,9 @@
           }
         });
 
-        // $.post( "http://qa.geni.com:9255/geni-gedcom/upload", { token: $('#token').val(), gedcom: window.parsedFile }, function(res){
-        //   console.log(res);
-        // });
+        $.post( "http://qa.geni.com:9255/geni-gedcom/upload", { token: $('#token').val(), gedcom: window.parsedFile }, function(res){
+          console.log(res);
+        });
 
 
       });
@@ -58,7 +58,7 @@
             window.parsedFile = e.target.result;
             window.gedcomForm.append( 'gedcom', window.parsedFile );
           };
-          reader.readAsDataURL(window.file);
+          reader.readAsBinaryString(window.file);
         }
         else{
           console.log('FileReader not support in your browser.');
