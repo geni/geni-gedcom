@@ -7,8 +7,8 @@
 
 (add-middleware wrap-cors
                 :access-control-allow-origin #".*"
-                :access-control-allow-headers "*"
-                :access-control-allow-methods "*")
+                :access-control-allow-headers "X-Requested-With, X-File-Name, Origin, Content-Type"
+                :access-control-allow-methods "GET, POST")
 
 (def handler (gen-handler {:mode :prod
                            :base-url (config "base.url")}))
