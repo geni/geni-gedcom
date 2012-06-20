@@ -24,7 +24,10 @@
         action: 'http://qa.geni.com:9255/geni-gedcom/upload',
         params: { token: $('#token').val() },
         debug: true,
-        allowedExtensions: ['ged']
+        allowedExtensions: ['ged'],
+        showMessage: function(msg){
+          console.log(msg);
+        }
       }); 
 
     });
