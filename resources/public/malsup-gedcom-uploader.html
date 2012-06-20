@@ -13,31 +13,34 @@ form { display: block; margin: 20px auto; background: #eee; border-radius: 10px;
 </head>
 <body>
     <h1>Gedcom Uploader</h1>
-      <form action="http://qa.geni.com:9255/geni-gedcom/upload" method="post" enctype="multipart/form-data">
-        <input type="text" name="token" placeholder='api key'><br>
+    <form action="http://qa.geni.com:9255/geni-gedcom/upload" method="post" enctype="multipart/form-data">
+        <input type="text" name="token" placeholder='api key' value='bogus_token'><br>
         <input type="file" name="gedcom"><br>
         <input type="submit" value="Upload">
     </form>
     
+    <form id="select" style="display:none">
+    </form>
+
     <div class="progress">
         <div class="bar"></div >
         <div class="percent">0%</div >
     </div>
-    
-    <div id="status"></div>
-    
+        
 <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.7/jquery.js"></script>
 <script src="http://malsup.github.com/jquery.form.js"></script>
+<script src="http://underscorejs.org/underscore-min.js"></script>
+
 <script>
 (function() {
     
   var bar = $('.bar');
   var percent = $('.percent');
-  var status = $('#status');
+  var select =$('#select')
      
   $('form').ajaxForm({
       beforeSend: function() {
-          status.empty();
+          select.empty();
           var percentVal = '0%';
           bar.width(percentVal)
           percent.html(percentVal);
@@ -48,7 +51,17 @@ form { display: block; margin: 20px auto; background: #eee; border-radius: 10px;
           percent.html(percentVal);
       },
     complete: function(xhr) {
-      status.html(xhr.responseText);
+      var opts = $('<select>');
+      var data = JSON.parse(xhr.responseText);
+
+      _.each(data.names, function(v,k){
+        console.log(v);
+        var opt = $('<option>').attr('value', v.name).text(v.name);
+        opts.append(opt); 
+      })
+
+      select.append(opts).show();
+
     }
   }); 
 
