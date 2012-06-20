@@ -1,0 +1,38 @@
+<html>
+<head>
+  <title>Geni Gedcom Uploader</title>
+
+  <link rel="stylesheet" type="text/css" href="https://raw.github.com/valums/file-uploader/master/client/fileuploader.css">
+  <style type="text/css">
+    input{
+      margin: 10px 0;
+      font-size: 16px;
+      padding: 5px;
+      width: 500px;
+    }
+  </style>
+
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js"></script>
+  <script src="https://raw.github.com/valums/file-uploader/master/client/fileuploader.js"></script>
+
+  <!-- JS -->
+  <script type="text/javascript">
+    $(document).ready(function(){
+
+      var uploader = new qq.FileUploader({
+        element: $('#drop')[0],
+        action: 'http://qa.geni.com:9255/geni-gedcom/upload',
+        params: { token: $('#token').val() },
+        debug: true,
+        allowedExtensions: ['ged']
+      }); 
+
+    });
+  </script>
+
+</head>
+<body>
+    <input id='token' type='text' placeholder='your api key'>
+    <div id='drop'></div>
+</body>
+</html>
