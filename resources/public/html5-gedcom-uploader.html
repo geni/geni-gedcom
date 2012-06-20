@@ -1,0 +1,85 @@
+<html>
+<head>
+  <title>Geni Gedcom Uploader</title>
+
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js"></script>
+  <script src="https://raw.github.com/valums/file-uploader/master/client/fileuploader.js"></script>
+
+  <!-- JS -->
+  <script type="text/javascript">
+    $(document).ready(function(){
+
+      window.file = null;
+      window.gedcomForm = new FormData();
+
+      // Listen for click on the submit button, then send our 
+      // file/key along
+      $('#upload-button').click(function(ev){ 
+        ev.preventDefault();
+        
+        if ( $('#token').val().length < 1 && !file ){
+          $('#descriptor').text('[Error] No key and/or file.').css({color: 'red'});
+          return;
+        }
+
+        window.gedcomForm.append( 'token', $('#token').val() )
+
+        $.ajax({
+          url: "http://qa.geni.com:9255/geni-gedcom/upload",
+          data: window.gedcomForm,
+          type: 'POST',
+          contentType: false,
+          processData: false,
+          success: function(msg){
+            $('#descriptor').text('Done.').css({color: 'green'});
+            console.log(msg);
+          },
+          error: function(){
+            console.log("[Error]");
+            $('#descriptor').text('[Error]').css({color: 'red'});
+          }
+        });
+
+        // $.post( "http://qa.geni.com:9255/geni-gedcom/upload", { token: $('#token').val(), gedcom: window.parsedFile }, function(res){
+        //   console.log(res);
+        // });
+
+
+      });
+
+      // Watch for a change in our file input, and assign the file to gedcomFile when 
+      $('#gedcom-file').change(function(ev){ 
+        window.file = this.files[0] 
+
+        if ( window.FileReader ) {
+          reader = new FileReader();
+          reader.onloadend = function (e) {
+            console.log('Done reading file.')
+            window.parsedFile = e.target.result;
+            window.gedcomForm.append( 'gedcom', window.parsedFile );
+          };
+          reader.readAsDataURL(window.file);
+        }
+        else{
+          console.log('FileReader not support in your browser.');
+        }
+
+      });
+
+    });
+  </script>
+
+
+</head>
+<body>
+
+  <form action="http://qa.geni.com:9255/geni-gedcom/upload" id="gedcom-upload">
+    <h1>Upload your Gedcom</h1>
+    <p id='descriptor'>Enter your API key then upload a file.</p>
+    <input type='text' placeholder='token' id='token'>
+    <input type="file" size="20" id="gedcom-file" class=" ">
+    <div><button class="button" type="submit" id='upload-button'>Upload</button></div>
+  </form>
+
+</body>
+</html>
