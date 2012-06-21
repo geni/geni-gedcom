@@ -1,6 +1,6 @@
 (defproject geni-gedcom "0.0.9"
   :description "A GEDCOM to Geni importer."
-  :url "http://github.com/geni/gedcom-importer"
+  :url "http://github.com/geni/geni-gedcom"
   :license {:name "Eclipse Public License - v 1.0"
             :url "http://www.eclipse.org/legal/epl-v10.html"
             :distribution :repo}
