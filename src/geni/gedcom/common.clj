@@ -1,7 +1,8 @@
 (ns geni.gedcom.common
   (:require [clojure.string :as string]
             [useful.fn :refer [to-fix fix]]
-            [useful.utils :refer [adjoin]]))
+            [useful.utils :refer [adjoin]]
+            [useful.experimental :refer [cond-let]]))
 
 (defmulti to-geni
   "Parse pieces of GEDCOM records into items consumable by the Geni API."
@@ -37,9 +38,11 @@
   [date]
   (string/trim
    (string/replace
-    date
-    #"b\.?c\.?|a\.?d\.?|c\.?a?\.|circa|unknown|antes\s+de|FROM|TO|BET|BTN|AFT|BEF|AND|about|ab|ABT|CAL|EST|INT|\(.*\)"
-    "")))
+    (string/replace
+     date
+     #"b\.?c\.?|a\.?d\.?|c\.?a?\.|circa|unknown|antes\s+de|FROM|TO|WFT|OR|BET|BTN|AFT|BEF|AND|about|ABT|ab|CAL|EST|INT|\(.*\)"
+     "")
+    #"\." " ")))
 
 (defn ^:private date-to-map
   "For simple date structures where each segment is simply
@@ -111,11 +114,12 @@
     (let [date (clean-date plac)
           approximate (re-find #"about|ab|ABT|CAL|EST|INT|antes\s+de" plac)]
       {:date (merge {:circa (boolean approximate)}
-                    (cond (re-find #"\d{1,2}/\d{1,2}/\d{4}" date) (date-to-map #"/" date)
-                          (re-find #"\d{4}/\d{1,2}/\d{1,2}" date) (date-to-map #"/" date :reverse)
-                          (re-find #"\d{1,2}-\d{1,2}-\d{4}" date) (date-to-map #"-" date)
-                          (re-find #"\d{4}-\d{1,2}-\d{1,2}" date) (date-to-map #"-" date :reverse)
-                          :else (reduce parse-component {} (string/split date #"\b"))))})))
+                    (cond-let
+                     [date (re-find #"\d{1,2}/\d{1,2}/\d{4}" date)] (date-to-map #"/" date)
+                     [date (re-find #"\d{4}/\d{1,2}/\d{1,2}" date)] (date-to-map #"/" date :reverse)
+                     [date (re-find #"\d{1,2}-\d{1,2}-\d{4}" date)] (date-to-map #"-" date)
+                     [date (re-find #"\d{4}-\d{1,2}-\d{1,2}" date)] (date-to-map #"-" date :reverse)
+                     :else (reduce parse-component {} (string/split date #"\b|-"))))})))
 
 (defn event [record k]
   (when-let [value (reduce adjoin (mapcat #(map to-geni %) (second record)))]
@@ -198,5 +202,4 @@
 (defn profile-ids
   "Return the profile ids linked to from this union."
   [union]
-  (prn union)
   (mapcat union [:children :partners]))
