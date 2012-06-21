@@ -1,8 +1,9 @@
 (defproject geni-gedcom "0.0.9"
   :description "A GEDCOM to Geni importer."
   :url "http://github.com/geni/gedcom-importer"
-  :license {:name "Eclipse Public License"
-            :url "http://www.eclipse.org/legal/epl-v10.html"}
+  :license {:name "Eclipse Public License - v 1.0"
+            :url "http://www.eclipse.org/legal/epl-v10.html"
+            :distribution :repo}
   :dependencies [[org.clojure/clojure "1.4.0"]
                  [geni-clj-sdk "0.1.4-alpha4"]
                  [gedcom "0.1.0-alpha8"]
