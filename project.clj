@@ -5,7 +5,7 @@
             :url "http://www.eclipse.org/legal/epl-v10.html"}
   :dependencies [[org.clojure/clojure "1.4.0"]
                  [geni-clj-sdk "0.1.4-alpha4"]
-                 [gedcom "0.1.0-alpha7"]
+                 [gedcom "0.1.0-alpha8"]
                  [useful "0.8.3-alpha2"]
                  [noir "1.3.0-beta8"]
                  [flatland/ring-cors "0.0.5"]]
