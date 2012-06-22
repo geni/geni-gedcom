@@ -28,7 +28,9 @@
 
     </form>
     
-    <form action="http://qa.geni.com:9255/geni-gedcom/finish" id="import" method="post" style="display:none">
+    <form action="http://qa.geni.com:9255/geni-gedcom/import" id="import" method="post" style="display:none">
+      <input type="text" name="token" placeholder='api key' value='bogus_token'> or 
+      <input type='checkbox' class='check-token' value='2PhWUNI7tyfzI5ZTMpDgCQyDfa4yG5BCF2Tal2JZ' name='token'> default token </br> 
       <input type='submit' value='Choose'>
     </form>
         
@@ -45,7 +47,7 @@
       var imp =$('#import');
         
       $('#upload input[type=file]').change(function(){
-        $('#upload').submit()
+        $('#upload').submit();
       })
 
       $('#upload').ajaxForm({
@@ -65,7 +67,7 @@
           var data = JSON.parse(xhr.responseText);
 
           _.each(data.names, function(v,k){
-            var opt = $('<option>').attr('value', v.name).text(v.name);
+            var opt = $('<option>').attr('value', k).text(v.name);
             opts.append(opt); 
           })
 
