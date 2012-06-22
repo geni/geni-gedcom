@@ -63,7 +63,7 @@
               percent.html(percentVal);
           },
         complete: function(xhr) {
-          var opts = $("<select id='select' name='indi'>");
+          var opts = $("<select id='select' name='id'>");
           var data = JSON.parse(xhr.responseText);
 
           _.each(data.names, function(v,k){
