@@ -3,67 +3,85 @@
 <head>
 <title>File Upload Progress Demo #1</title>
 <style>
-body { padding: 30px }
-form { display: block; margin: 20px auto; background: #eee; border-radius: 10px; padding: 15px }
+  body { padding: 30px }
+  form { display: block; margin: 20px auto; background: #eee; border-radius: 10px; padding: 15px }
 
-.progress { position:relative; width:400px; border: 1px solid #ddd; padding: 1px; border-radius: 3px; }
-.bar { background-color: #B4F5B4; width:0%; height:20px; border-radius: 3px; }
-.percent { position:absolute; display:inline-block; top:3px; left:48%; }
+  .progress { position:relative; width:100%; border: 1px solid #ddd; padding: 1px; border-radius: 3px; margin: 10px 0; }
+  .bar { background-color: #B4F5B4; width:0%; height:20px; border-radius: 3px; }
+  .percent { position:absolute; display:inline-block; top:3px; left:48%; }  
+  .check-token{ margin-left: 10px; }
+
 </style>
 </head>
 <body>
     <h1>Gedcom Uploader</h1>
-    <form action="http://qa.geni.com:9255/geni-gedcom/upload" method="post" enctype="multipart/form-data">
-        <input type="text" name="token" placeholder='api key' value='bogus_token'><br>
-        <input type="file" name="gedcom"><br>
-        <input type="submit" value="Upload">
-    </form>
-    
-    <form id="select" style="display:none">
-    </form>
+    <form id='upload' action="http://qa.geni.com:9255/geni-gedcom/upload" method="post" enctype="multipart/form-data">
+        <input type="text" name="token" placeholder='api key' value='bogus_token'> or 
+        <input type='checkbox' class='check-token' value='2PhWUNI7tyfzI5ZTMpDgCQyDfa4yG5BCF2Tal2JZ' name='token'> default token </br> 
 
-    <div class="progress">
+        <input type="file" name="gedcom" value='drag file here'><br>
+
+      <div class="progress">
         <div class="bar"></div >
         <div class="percent">0%</div >
-    </div>
+      </div>
+
+    </form>
+    
+    <form action="http://qa.geni.com:9255/geni-gedcom/finish" id="import" method="post" style="display:none">
+      <input type='submit' value='Choose'>
+    </form>
         
 <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.7/jquery.js"></script>
 <script src="http://malsup.github.com/jquery.form.js"></script>
 <script src="http://underscorejs.org/underscore-min.js"></script>
 
 <script>
-(function() {
-    
-  var bar = $('.bar');
-  var percent = $('.percent');
-  var select =$('#select')
-     
-  $('form').ajaxForm({
-      beforeSend: function() {
-          select.empty();
-          var percentVal = '0%';
-          bar.width(percentVal)
-          percent.html(percentVal);
-      },
-      uploadProgress: function(event, position, total, percentComplete) {
-          var percentVal = percentComplete + '%';
-          bar.width(percentVal)
-          percent.html(percentVal);
-      },
-    complete: function(xhr) {
-      var opts = $('<select>');
-      var data = JSON.parse(xhr.responseText);
-
-      _.each(data.names, function(v,k){
-        console.log(v);
-        var opt = $('<option>').attr('value', v.name).text(v.name);
-        opts.append(opt); 
+(function($) {
+   
+   $(document).ready(function(){ 
+      var bar = $('.bar');
+      var percent = $('.percent');
+      var imp =$('#import');
+        
+      $('#upload input[type=file]').change(function(){
+        $('#upload').submit()
       })
 
-      select.append(opts).show();
+      $('#upload').ajaxForm({
+          beforeSend: function() {
+              $('#select').remove();
+              var percentVal = '0%';
+              bar.width(percentVal)
+              percent.html(percentVal);
+          },
+          uploadProgress: function(event, position, total, percentComplete) {
+              var percentVal = percentComplete + '%';
+              bar.width(percentVal)
+              percent.html(percentVal);
+          },
+        complete: function(xhr) {
+          var opts = $("<select id='select' name='indi'>");
+          var data = JSON.parse(xhr.responseText);
 
-    }
-  }); 
+          _.each(data.names, function(v,k){
+            var opt = $('<option>').attr('value', v.name).text(v.name);
+            opts.append(opt); 
+          })
 
-})();       
+          imp.prepend(opts).show();
+
+        }
+      }); 
+
+
+      $('#import').ajaxForm({
+        complete: function(xhr){
+          $('#import').append( "<div>" + xhr.responseText + "</div>");
+        }
+      });
+
+  });
+
+})(jQuery);       
 </script>

@@ -1,21 +1,28 @@
 (ns geni.gedcom.web.server
-  (:require [noir.server :refer [gen-handler start wrap-route add-middleware]]
+  (:require [compojure.route :as route]
+            [compojure.handler :as handler]
+            [compojure.core :refer [defroutes GET]]
             [ring.middleware.cors :refer [wrap-cors]]
+            [ring.middleware.multipart-params :refer [wrap-multipart-params]]
+            [ring.util.response :refer [resource-response]]
             [geni.gedcom.web.common :refer [config]]
-            [geni.gedcom.web.views api interface])
+            [geni.gedcom.web.views.api :refer [api-routes]])
   (:gen-class))
 
-(add-middleware wrap-cors
-                :access-control-allow-origin #".*"
-                :access-control-allow-headers "X-Requested-With, X-File-Name, Origin, Content-Type"
-                :access-control-allow-methods "GET, POST")
+(def api
+  (-> api-routes
+      handler/api
+      wrap-multipart-params
+      (wrap-cors
+       :access-control-allow-origin #".*"
+       :access-control-allow-headers "X-Requested-With, X-File-Name, Origin, Content-Type"
+       :access-control-allow-methods "GET, POST")))
 
-(def handler (gen-handler {:mode :prod
-                           :base-url (config "base.url")}))
-
-(defn -main []
-  (start 8080 {:mode :prod
-               :base-url (config "base.url")}))
+(defroutes handler
+  (GET "/" [] (resource-response "public/malsup-gedcom-uploader.html"))
+  api
+  (route/resources "/")
+  (route/not-found "Page not found."))
 
 ;; war test code
 (comment
