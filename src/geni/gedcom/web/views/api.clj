@@ -3,17 +3,14 @@
             [geni.gedcom.web.common :refer [catch-exception-string]]
             [gedcom.core :refer [parse-gedcom]]
             [geni.gedcom.common :refer [to-geni]]
-            [compojure.core :refer [defroutes POST]]
-            [ring.util.response :refer [response status content-type]]
-            [cheshire.core :refer [generate-string]]))
+            [compojure.core :refer [defroutes POST]] 
+            [noir.response :refer [json status]]))
 
 (defn respond [processed]
-  (-> (generate-string processed)
-      response
+  (-> (json processed)
       (status (if (:error processed)
                 422
-                200))
-      (content-type "application/json")))
+                200))))
 
 (defn upload-ged [gedcom token]
   (respond

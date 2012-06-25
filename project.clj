@@ -9,6 +9,7 @@
                  [gedcom "0.1.0-alpha8"]
                  [useful "0.8.3-alpha2"]
                  [compojure "1.1.0"]
+                 [lib-noir "0.1.1"]
                  [flatland/ring-cors "0.0.5"]]
   :plugins [[lein-ring "0.7.1"]]
   :ring {:handler geni.gedcom.web.server/handler
