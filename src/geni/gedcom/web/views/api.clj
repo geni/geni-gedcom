@@ -7,10 +7,10 @@
             [noir.response :refer [json status]]))
 
 (defn respond [processed]
-  (-> (json processed)
-      (status (if (:error processed)
-                422
-                200))))
+  (->> (json processed)
+       (status (if (:error processed)
+                 422
+                 200))))
 
 (defn upload-ged [gedcom token]
   (respond
