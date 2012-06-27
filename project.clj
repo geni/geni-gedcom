@@ -15,3 +15,14 @@
   :ring {:handler geni.gedcom.web.server/handler
          :war-exclusions [#"gedcom.properties"]}
   :main geni.gedcom.web.server)
+
+(use '[robert.hooke :only [add-hook]]
+     '[clojure.java.shell :only [sh]])
+
+(require '[leiningen.compile :as c])
+
+(defn info-hook [f project & args]
+  (spit "resources/leinversion" (:version project))
+  (spit "resources/gitsha" (:out (sh "git" "rev-parse" "HEAD"))))
+
+(add-hook #'c/compile info-hook)

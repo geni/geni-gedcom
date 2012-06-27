@@ -6,7 +6,8 @@
             [ring.middleware.multipart-params :refer [wrap-multipart-params]]
             [ring.util.response :refer [resource-response]]
             [geni.gedcom.web.common :refer [config]]
-            [geni.gedcom.web.views.api :refer [api-routes]])
+            [geni.gedcom.web.views.api :refer [api-routes]]
+            [geni.gedcom.web.views.system :refer [system-routes]])
   (:gen-class))
 
 (def api
@@ -21,6 +22,7 @@
 (defroutes handler
   (GET "/" [] (resource-response "public/malsup-gedcom-uploader.html"))
   api
+  system-routes
   (route/resources "/")
   (route/not-found "Page not found."))
 
