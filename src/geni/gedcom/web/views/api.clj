@@ -4,7 +4,8 @@
             [gedcom.core :refer [parse-gedcom]]
             [geni.gedcom.common :refer [to-geni]]
             [compojure.core :refer [defroutes POST]] 
-            [noir.response :refer [json status]]))
+            [noir.response :refer [json status]]
+            [clojure.tools.logging :refer [info error]]))
 
 (defn respond [processed]
   (->> (json processed)
@@ -13,23 +14,30 @@
                  200))))
 
 (defn upload-ged [gedcom token]
+  (info (str "Starting upload for " token))
   (respond
-   (let [results (catch-exception-string
-                  (parse-gedcom (:tempfile gedcom) to-geni))]
+   (let [results (catch-exception-string (str "Error parsing gedcom for " token)
+                   (parse-gedcom (:tempfile gedcom) to-geni))]
      (if (map? results)
        (do (future-clean token (:id (swap! cache cache-records results token)))
+           (info (str "Successfully parsed gedcom records for " token))
            {:names (names results)})
        {:error results}))))
 
 (defn import-ged [id token]
+  (info (str "Importing records for " token))
   (respond
    (if-let [records (:records (get @cache token))]
      (let [results (import-records records id token)]
        (swap! cache dissoc token)
        (if (map? results)
-         {:profiles_imported (count-profiles results)}
+         (let [count (count-profiles results)]
+           (info (str "Successfully imported " count " profiles for " token))
+           {:profiles_imported count})
          {:error results}))
-     {:error "No records associated with this token."})))
+     (let [message (str "No records associated with token " token)]
+       (error message)
+       {:error message}))))
 
 (defroutes api-routes
   (POST "/upload" {{:keys [gedcom token]} :params}
