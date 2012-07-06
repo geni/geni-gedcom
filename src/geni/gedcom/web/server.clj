@@ -20,7 +20,7 @@
        :access-control-allow-methods "GET, POST")))
 
 (defroutes handler
-  (GET "/" [] (resource-response "public/malsup-gedcom-uploader.html"))
+  (GET "/" [] (resource-response "public/index.html"))
   api
   system-routes
   (route/resources "/")
