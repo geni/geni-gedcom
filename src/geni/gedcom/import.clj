@@ -57,7 +57,7 @@
         steps))
 
 (defn import-gedcom
-  "Import the given GEDCOM recrds using the Geni API. The provided label identifies yourself in the
+  "Import the given GEDCOM records using the Geni API. The provided label identifies yourself in the
   GEDCOM. Token is expected to be a Geni OAuth access token."
   [records label token]
   (reduce (partial import-tree token)
