@@ -93,7 +93,7 @@
             (swap! cache assoc-in [token :progress] progress))
           (update-status token :done)
           (info (str "Imported profiles for " token)))))))
-  {:profile-count (get-in @cache [token :profile-count])})
+  {:profile_count (get-in @cache [token :profile-count])})
 
 (defn import-gedcom
   "Initiates an import with records previously cached against token.
