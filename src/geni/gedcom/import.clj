@@ -8,10 +8,11 @@
 
 (defn import-tree
   "Import a map of profiles and unions. Replace all nodes that have already been assigned ids with
-  the id. Return a new map of labels to ids. Note that /profiles/import_tree has a size limit for
-  unions and profiles which is 100 by default."
+  the id. Return a vector of the current number of profiles added and the ids.
+  Note that /profiles/import_tree has a size limit for unions and profiles which is 100 by default."
   [token ids tree]
-  (let [tree (update-each tree [:profiles :unions]
+  (let [[added ids] ids
+        tree (update-each tree [:profiles :unions]
                           map-vals-with-keys
                           (fn [k v]
                             (get ids k v)))
@@ -19,7 +20,8 @@
                             tree
                             {:access_token token
                              :only_ids 1})]
-    (merge-in ids (get results "imported"))))
+    [(+ added (get results "profiles_added"))
+     (merge-in ids (get results "imported"))]))
 
 (def ^:dynamic *max-batch-size* 100)
 
@@ -60,7 +62,7 @@
   "Import the given GEDCOM records using the Geni API. The provided label identifies yourself in the
   GEDCOM. Token is expected to be a Geni OAuth access token."
   [records label token]
-  (reduce (partial import-tree token)
-          {label (get (geni/read "/profile" {:access_token token}) "id")}
-          (in-batches *max-batch-size*
-                      (walk-gedcom records label))))
+  (reductions (partial import-tree token)
+              [1 {label (get (geni/read "/profile" {:access_token token}) "id")}]
+              (in-batches *max-batch-size*
+                          (walk-gedcom records label))))
