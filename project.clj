@@ -10,7 +10,8 @@
                  [useful "0.8.3-alpha2"]
                  [compojure "1.1.0"]
                  [lib-noir "0.1.1"]
-                 [flatland/ring-cors "0.0.6"]]
+                 [flatland/ring-cors "0.0.6"]
+                 [org.clojure/tools.logging "0.2.3"]]
   :plugins [[lein-ring "0.7.1"]]
   :ring {:handler geni.gedcom.web.server/handler
          :war-exclusions [#"gedcom.properties"]}
