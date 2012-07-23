@@ -11,7 +11,8 @@
                  [compojure "1.1.0"]
                  [lib-noir "0.1.1"]
                  [flatland/ring-cors "0.0.6"]
-                 [org.clojure/tools.logging "0.2.3"]]
+                 [org.clojure/tools.logging "0.2.3"]
+                 [log4j/log4j "1.2.17"]]
   :plugins [[lein-ring "0.7.1"]]
   :ring {:handler geni.gedcom.web.server/handler
          :war-exclusions [#"gedcom.properties"]}
