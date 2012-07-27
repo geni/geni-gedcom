@@ -1,4 +1,4 @@
-(defproject geni-gedcom "0.0.13"
+(defproject geni-gedcom "0.0.16"
   :description "A GEDCOM to Geni importer."
   :url "http://github.com/geni/geni-gedcom"
   :license {:name "Eclipse Public License - v 1.0"
@@ -10,7 +10,7 @@
                  [useful "0.8.3-alpha2"]
                  [compojure "1.1.0"]
                  [lib-noir "0.1.1"]
-                 [flatland/ring-cors "0.0.6"]
+                 [flatland/ring-cors "0.0.7"]
                  [org.clojure/tools.logging "0.2.3"]
                  [log4j/log4j "1.2.17"]]
   :plugins [[lein-ring "0.7.1"]]
