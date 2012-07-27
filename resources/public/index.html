@@ -41,25 +41,33 @@
 <script>
 (function($) {
    
-   $(document).ready(function(){ 
+   $(document).ready(function(){
       var bar = $('.bar');
       var percent = $('.percent');
       var imp =$('#import');
+
+      padName = function(name) {
+        if (name) {
+          return name + ' ';
+        } else {
+          return ' ';
+        }
+      };
         
       $('#upload input[type=file]').change(function(){
         $('#upload').submit();
-      })
+      });
 
       $('#upload').ajaxForm({
           beforeSend: function() {
               $('#select').remove();
               var percentVal = '0%';
-              bar.width(percentVal)
+              bar.width(percentVal);
               percent.html(percentVal);
           },
           uploadProgress: function(event, position, total, percentComplete) {
               var percentVal = percentComplete + '%';
-              bar.width(percentVal)
+              bar.width(percentVal);
               percent.html(percentVal);
           },
         complete: function(xhr) {
@@ -67,9 +75,14 @@
           var data = JSON.parse(xhr.responseText);
 
           _.each(data.names, function(v,k){
-            var opt = $('<option>').attr('value', k).text(v.name);
+            var date = v.birth;
+            var nameText = padName(v.first_name) + padName(v.middle_name) + padName(v.last_name);
+            if (date) {
+              nameText += (date.month || '00') + '/' + (date.day || '00') + '/' + (date.year || '0000');
+            }
+            var opt = $('<option>').attr('value', k).text(nameText);
             opts.append(opt); 
-          })
+          });
 
           imp.prepend(opts).show();
 
