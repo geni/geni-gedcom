@@ -46,6 +46,14 @@
     (Thread/sleep 300000)
     (swap! cache remove-records token id)))
 
+(defn extract-info
+  "Extract first name, middle name, last name, and birth date info
+   out of a record."
+  [record]
+  (update-in (select-keys record [:first_name :middle_name :last_name :birth])
+             [:birth]
+             :date))
+
 (defn names
   "Takes gedcom records and returns a map of names from INDI
    records to their corresponding ids."
@@ -53,11 +61,7 @@
   (reduce (fn [acc [k v]]
             (if (= :indi (:record-type v))
               (assoc acc
-                k {:name (join " " (filter identity
-                                           ((juxt :first_name
-                                                  :middle_name
-                                                  :last_name)
-                                            v)))})
+                k (extract-info v))
               acc))
           {}
           records))
@@ -109,3 +113,4 @@
     (let [message (str "No records associated with token " token)]
       (error message)
       {:error message})))
+
