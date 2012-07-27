@@ -17,7 +17,7 @@
       (wrap-cors
        :access-control-allow-origin #".*"
        :access-control-allow-headers "X-Requested-With, X-File-Name, Origin, Content-Type"
-       :access-control-allow-methods "GET, POST")))
+       :access-control-allow-methods [:get, :post])))
 
 (defroutes handler
   (GET "/" [] (resource-response "public/index.html"))
@@ -30,7 +30,7 @@
 (comment
   (import org.mortbay.jetty.Server
           org.mortbay.jetty.webapp.WebAppContext)
-  
+
   (doto (Server. 8080)
     (.setHandler (WebAppContext. "target/importer.war" "/"))
     .start))
