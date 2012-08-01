@@ -1,4 +1,4 @@
-(defproject geni-gedcom "0.0.17"
+(defproject geni-gedcom "0.0.18"
   :description "A GEDCOM to Geni importer."
   :url "http://github.com/geni/geni-gedcom"
   :license {:name "Eclipse Public License - v 1.0"
