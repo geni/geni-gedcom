@@ -6,6 +6,13 @@
             [geni.gedcom.common :refer [to-geni profile-ids union-ids]]
             [geni.core :as geni]))
 
+(defn update-profile
+  "Update one specific profile with new info."
+  [profile data token]
+  (geni/write (format "/%s/update" profile)
+              data
+              {:access_token token}))
+
 (defn import-tree
   "Import a map of profiles and unions. Replace all nodes that have already been assigned ids with
   the id. Return a vector of the current number of profiles added and the ids.
@@ -62,7 +69,11 @@
   "Import the given GEDCOM records using the Geni API. The provided label identifies yourself in the
   GEDCOM. Token is expected to be a Geni OAuth access token."
   [records label token]
-  (reductions (partial import-tree token)
-              [1 {label (get (geni/read "/profile" {:access_token token}) "id")}]
-              (in-batches *max-batch-size*
-                          (walk-gedcom records label))))
+  (prn label)
+  (prn token)
+  (let [id (get (geni/read "/profile" {:access_token token}) "id")]
+    (update-profile id (records label) token)
+    (reductions (partial import-tree token)
+                [1 {label id}]
+                (in-batches *max-batch-size*
+                            (walk-gedcom records label)))))

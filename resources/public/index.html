@@ -80,7 +80,7 @@
             if (date) {
               nameText += (date.month || '00') + '/' + (date.day || '00') + '/' + (date.year || '0000');
             }
-            var opt = $('<option>').attr('value', k).text(nameText);
+            var opt = $('<option>').attr('value', v.id).text(nameText);
             opts.append(opt); 
           });
 

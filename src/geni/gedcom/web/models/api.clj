@@ -54,17 +54,28 @@
              [:birth]
              :date))
 
+(defn push-to-end
+  "Same as compare, but if either key is nil, do the opposite
+   of what compare would do."
+  [k1 k2]
+  (let [compared (compare k1 k2)]
+    (if (and k1 k2)
+      compared
+      (- compared))))
+
 (defn names
   "Takes gedcom records and returns a map of names from INDI
    records to their corresponding ids."
   [records]
-  (reduce (fn [acc [k v]]
-            (if (= :indi (:record-type v))
-              (assoc acc
-                k (extract-info v))
-              acc))
-          {}
-          records))
+  (sort-by
+   :first_name
+   push-to-end
+   (reduce (fn [acc [k v]]
+             (if (= :indi (:record-type v))
+               (conj acc (assoc (extract-info v) :id k))
+               acc))
+           []
+           records)))
 
 (defn prepare-gedcom
   "Parses an uploaded gedcom, stores the parsed records in the cache,
