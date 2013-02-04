@@ -1,4 +1,3 @@
-
 <!doctype html>
 <head>
 <title>File Upload Progress Demo #1</title>
@@ -15,10 +14,8 @@
 </head>
 <body>
     <h1>Gedcom Uploader</h1>
-    <form id='upload' action="http://qa.geni.com:9255/geni-gedcom/upload" method="post" enctype="multipart/form-data">
-        <input type="text" name="token" placeholder='api key' value='bogus_token'> or 
-        <input type='checkbox' class='check-token' value='2PhWUNI7tyfzI5ZTMpDgCQyDfa4yG5BCF2Tal2JZ' name='token'> default token </br> 
-
+    <form id='upload' action="http://localhost:3000/upload" method="post" enctype="multipart/form-data">
+        <input type="text" name="token" placeholder='api key' value='token goes here'> 
         <input type="file" name="gedcom" value='drag file here'><br>
 
       <div class="progress">
@@ -28,9 +25,8 @@
 
     </form>
     
-    <form action="http://qa.geni.com:9255/geni-gedcom/import" id="import" method="post" style="display:none">
-      <input type="text" name="token" placeholder='api key' value='bogus_token'> or 
-      <input type='checkbox' class='check-token' value='2PhWUNI7tyfzI5ZTMpDgCQyDfa4yG5BCF2Tal2JZ' name='token'> default token </br> 
+    <form action="http://localhost:3000/import" id="import" method="post" style="display:none">
+      <input type="text" name="token" placeholder='api key' value='token goes here'> or 
       <input type='submit' value='Choose'>
     </form>
         
