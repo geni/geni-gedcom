@@ -69,8 +69,6 @@
   "Import the given GEDCOM records using the Geni API. The provided label identifies yourself in the
   GEDCOM. Token is expected to be a Geni OAuth access token."
   [records label token]
-  (prn label)
-  (prn token)
   (let [id (get (geni/read "/profile" {:access_token token}) "id")]
     (update-profile id (records label) token)
     (reductions (partial import-tree token)
