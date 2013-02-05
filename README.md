@@ -25,6 +25,13 @@ Clojure. Follow the instructions there.
 If you want to import gedcoms, chances are you have a Geni account. If not,
 you'll need one. Go get one.
 
+Now you need to register an application for the Geni API. This is a necessary
+step for getting an API key. Go to
+[the platform apps page](http://www.geni.com/platform/developer/apps) and click
+'+ Register New Application'. Now fill in the information. You must fill in at
+least 'Name', 'Site URL', and 'Site Domain', but the values of these are not
+really important.
+
 Next, go to
 [the Geni API explorer](https://www.geni.com/platform/developer/api_explorer). You
 can get a magic API key here. Just click "Get Access Token" and it should give
