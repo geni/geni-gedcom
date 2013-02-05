@@ -15,7 +15,7 @@
 <body>
     <h1>Gedcom Uploader</h1>
     <form id='upload' action="http://localhost:3000/upload" method="post" enctype="multipart/form-data">
-        <input type="text" name="token" placeholder='api key' value='token goes here'> 
+        <input id="token1" type="text" name="token" placeholder='api key' value='token goes here'> 
         <input type="file" name="gedcom" value='drag file here'><br>
 
       <div class="progress">
@@ -26,7 +26,7 @@
     </form>
     
     <form action="http://localhost:3000/import" id="import" method="post" style="display:none">
-      <input type="text" name="token" placeholder='api key' value='token goes here'> or 
+      <input id="token2" type="text" name="token" placeholder='api key' value='token goes here'> or 
       <input type='submit' value='Choose'>
     </form>
         
@@ -41,6 +41,8 @@
       var bar = $('.bar');
       var percent = $('.percent');
       var imp =$('#import');
+      var token1 = $('#token1')
+      var token2 = $('#token2')
 
       var padName = function(name) {
         if (name) {
@@ -81,6 +83,7 @@
           });
 
           imp.prepend(opts).show();
+          token2.val(token1.val())
 
         }
       }); 
