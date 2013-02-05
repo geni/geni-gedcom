@@ -46,8 +46,8 @@ Almost there!
 ### Step 4 - Use it
 
 Now you have two options. You can either use the little web interface that we
-use for testing the importer, or you can just call the code directly. I'll show
-both options. First of all, let's try the web interface.
+use for testing the importer, or you can just call the code directly. Let's try
+the web interface.
 
 Open `resources/gedcom.properties` in your favorite text editor and change it to
 look like this:
@@ -69,8 +69,10 @@ interface in your browser.
   appeared.
 * Click 'choose'.
 * Wait for it to upload, or go to `localhost:3000/progress?token=yourtoken` and
-  watch refresh constantly with excitement to see how close you are to being finished.
-
+  watch refresh constantly with excitement to see how close you are to being
+  finished.
+  
+Instructions on using the code itself coming soon.
 
 ## License
 
