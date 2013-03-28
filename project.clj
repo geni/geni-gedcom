@@ -16,7 +16,7 @@
   :plugins [[lein-ring "0.7.1"]]
   :ring {:handler geni.gedcom.web.server/handler
          :war-exclusions [#"gedcom.properties"]}
-  :main geni.gedcom.web.server)
+  :main geni.gedcom.main)
 
 (use '[robert.hooke :only [add-hook]]
      '[clojure.java.shell :only [sh]])
