@@ -100,7 +100,8 @@
    (Thread.
     (fn []
       (binding [geni/*base* (config "url")
-                geni/*insecure* (Boolean/valueOf (config "insecure"))]
+                geni/*insecure* (Boolean/valueOf (config "insecure"))
+                geni/*basic-auth* (config "basicauth")]
         (let [result-seq (import/import-gedcom records id token)]
           (info (str "Importing profiles for " token))
           (update-status token :importing)
