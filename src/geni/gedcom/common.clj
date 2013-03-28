@@ -127,18 +127,21 @@
 
 ;; Profile methods
 
+(defn filter-records [tag record]
+  (let [[_ [[& records]]] record]
+    (filter (comp #{tag} first) records)))
+
 (defn parse-name [record]
-  (when-let [name (get-data record)]
+  (when-let [name (if (string? record) record (get-data record))]
     (let [[[first-name & middles] [last-name suffix]]
           (split-with
            #(not (.startsWith % "/"))
            (map first (re-seq #"(/[^/]*\*?/\*?|[^* ]+\*?)"
                               (string/replace-first name #"/" " /"))))]
-      (merge (reduce adjoin (map to-geni (first (second record))))
-             {:first_name first-name
-              :middle_name (when middles (string/join " " middles))
-              :last_name (when last-name (last (re-find #"/(.*)/" last-name)))
-              :suffix suffix}))))
+      {:first_name first-name
+       :middle_name (when middles (string/join " " middles))
+       :last_name (when last-name (last (re-find #"/(.*)/" last-name)))
+       :suffix suffix})))
 
 ;; Parse the name of an individual into first_name, middle_name
 ;; last_name, and suffix parts. The first name is always the very
@@ -146,17 +149,17 @@
 ;; first name up to the first slash (/) that delimits the last
 ;; name. After the next / is the suffix.
 (defmethod to-geni "NAME"
-  [record]
-  (parse-name record))
-
-(defmethod to-geni "GIVN"
-  [record]
-  (parse-name record))
-
-(defmethod to-geni "SURN"
-  [record]
-  (when-let [data (get-data record)]
-    {:maiden_name data}))
+  [record] 
+  (let [[surname married given] (map #(-> (filter-records % record)
+                                          (first)
+                                          (get-data))
+                                     ["SURN" "_MAR" "GIVN"])
+        [last maiden] (reverse (remove nil? [surname married]))]
+    (merge-with #(if (nil? %2) % %2)
+                (parse-name record)
+                (parse-name given)
+                {:last_name last
+                 :maiden_name maiden})))
 
 ;; BIRT, DEAT, BURI, and BAPM all have the same general structure.
 ;; The difference between them is what key we put the results
