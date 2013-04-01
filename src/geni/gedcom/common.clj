@@ -16,19 +16,20 @@
   get-data
   (comp :data first second))
 
+(defn build-structure [record]
+  (reduce adjoin (mapcat #(map to-geni %) (second record))))
+
 ;; Extract the city, state, and country out of an ADDR
 ;; structure.
 (defmethod to-geni "ADDR" [record]
   (let [addr (-> record second first)
         extract (fn [k] (-> addr (get k) first :data))]
-    {:location {:country (extract "CTRY")
-                :state   (extract "STAE")
-                :city    (extract "CITY")}}))
+    (build-structure record)))
 
-;; Extract the place structure from PLAC tags.
-(defmethod to-geni "PLAC" [record]
-  (let [plac (get-data record)]
-    {:location {:place_name plac}}))
+(defmethod to-geni "CTRY" [record] {:location {:country (get-data record)}})
+(defmethod to-geni "STAE" [record] {:location {:state (get-data record)}})
+(defmethod to-geni "CITY" [record] {:location {:city (get-data record)}})
+(defmethod to-geni "PLAC" [record] {:location {:place_name (get-data record)}})
 
 ;; Dates in GEDCOMs are extremely inconsistent so we must be
 ;; careful about parsing them in order to support as many formats
@@ -122,7 +123,7 @@
                      :else (reduce parse-component {} (string/split date #"\b|-"))))})))
 
 (defn event [record k]
-  (when-let [value (reduce adjoin (mapcat #(map to-geni %) (second record)))]
+  (when-let [value (build-structure record)]
     {k value}))
 
 ;; Profile methods
@@ -170,6 +171,10 @@
 (defmethod to-geni "BAPM" [record] (event record :baptism))
 (defmethod to-geni "BURI" [record] (event record :burial))
 
+(defmethod to-geni "NOTE" [record]
+  (when-let [data (get-data record)]
+    {:notes [data]}))
+
 (defmethod to-geni "FAMS" [record]
   {:partner (map :data (second record))})
 
@@ -183,12 +188,33 @@
                "f" "female"
                nil)}))
 
+(defmethod to-geni "RESI" [record]
+  {:residences (for [item (second record)]
+                 (reduce adjoin (map to-geni item)))})
+
+(defn current-residence
+  "Tries to intelligently determine a current residence. First, looks for
+   a note containing the geni indication of current residence in all of the
+   residences. If that's found, that residence is picked. Next, it tries to
+   compare the ones with dates until it finds the most recently dated one.
+   Otherwise, just pick one of them."
+  [residences]
+  (or (first
+       (filter #(some #{"{geni:location_name} current_residence"}
+                      (:notes %))
+               residences))
+      (-> (sort-by (comp (juxt :month :date :year) :date) residences)
+          (reverse)
+          (first))))
+
 (defmethod to-geni "INDI" [record]
   (let [profile (reduce adjoin (map to-geni record))]
-    (assoc (if (contains? profile :is_alive)
-             profile
-             (assoc profile :is_alive true))
-      :record-type :indi)))
+    (dissoc (assoc (if (contains? profile :is_alive)
+                     profile
+                     (assoc profile :is_alive true))
+              :record-type :indi
+              :current_residence (:location (current-residence (:residences profile))))
+            :residences)))
 
 (defn union-ids
   "Return the union ids linked to from this profile."

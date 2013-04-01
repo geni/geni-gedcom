@@ -1,5 +1,6 @@
 (ns geni.gedcom.import
-  (:require [gedcom.core :refer [parse-gedcom]]
+  (:require [clojure.pprint :refer [pprint]]
+            [gedcom.core :refer [parse-gedcom]]
             [useful.utils :refer [queue]]
             [useful.seq :refer [glue lazy-loop]]
             [useful.map :refer [merge-in update-each map-to map-vals map-vals-with-keys remove-vals update-each]]
